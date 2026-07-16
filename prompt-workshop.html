@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文生图提示词工坊 Pro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        h1 { font-size: 2em; background: linear-gradient(90deg, #00d2ff, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .subtitle { color: #666; margin-top: 8px; font-size: 0.95em; }
+        .main-content { display: flex; gap: 20px; align-items: flex-start; }
+        @media (max-width: 1100px) { 
+            .main-content { flex-direction: column; } 
+            .result-panel { position: fixed !important; bottom: 0; left: 0; right: 0; top: auto !important; border-radius: 16px 16px 0 0; z-index: 100; max-height: 50vh; width: 100%; min-width: unset; } 
+            .tabs-nav { flex-wrap: nowrap; overflow-x: auto; }
+            .tab-panel { max-height: 50vh; }
+        }
+        .left-panel { flex: 1; min-width: 0; }
+        .search-box { position: sticky; top: 0; z-index: 10; background: #0f0f1a; padding-bottom: 15px; }
+        .search-input { width: 100%; padding: 12px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 25px; color: #e0e0e0; font-size: 0.95em; transition: all 0.3s; }
+        .search-input:focus { outline: none; border-color: #00d2ff; box-shadow: 0 0 15px rgba(0,210,255,0.2); }
+        .tabs-container { display: flex; flex-direction: column; }
+        .tabs-nav { display: flex; gap: 4px; padding: 6px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); overflow-x: auto; flex-wrap: wrap; margin-bottom: 12px; }
+        .tabs-nav::-webkit-scrollbar { height: 4px; }
+        .tabs-nav::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+        .tabs-nav::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.3); border-radius: 2px; }
+        .tab-btn { padding: 8px 14px; background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: #888; white-space: nowrap; }
+        .tab-btn:hover { background: rgba(0,210,255,0.1); color: #e0e0e0; }
+        .tab-btn.active { background: linear-gradient(135deg, rgba(0,210,255,0.3), rgba(123,47,247,0.3)); color: #fff; box-shadow: 0 2px 8px rgba(0,210,255,0.3); }
+        .tab-btn-icon { font-size: 1.1em; }
+        .tab-btn-count { font-size: 0.75em; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 8px; }
+        .tab-btn-selected { display: none; font-size: 0.7em; background: rgba(80,200,120,0.8); padding: 1px 5px; border-radius: 6px; color: #fff; }
+        .tab-btn-selected.visible { display: inline-flex; }
+        .tab-content { background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+        .tab-panel { display: none; padding: 14px; max-height: 600px; overflow-y: auto; }
+        .tab-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(0,210,255,0.05); border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(0,210,255,0.1); }
+        .tab-panel-title { font-size: 0.9em; color: #00d2ff; font-weight: 500; }
+        .tab-clear-btn { padding: 4px 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #888; font-size: 0.78em; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .tab-clear-btn:hover { background: rgba(255,80,80,0.3); color: #ff5050; }
+        .tab-clear-btn.has-items { background: rgba(80,200,120,0.2); border-color: rgba(80,200,120,0.3); color: #50c878; }
+        .clear-count { background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 10px; font-size: 0.9em; min-width: 18px; text-align: center; }
+        .tab-panel.active { display: block; }
+        .tab-panel::-webkit-scrollbar { width: 5px; }
+        .tab-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .tab-panel::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.3); border-radius: 3px; }
+        .module { margin-bottom: 10px; }
+        .module:last-child { margin-bottom: 0; }
+        .module-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(255,255,255,0.02); cursor: pointer; user-select: none; border-radius: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .module-header:hover { background: rgba(0,210,255,0.05); }
+        .module-icon { font-size: 1em; }
+        .module-title { font-size: 0.9em; font-weight: 600; color: #00d2ff; flex: 1; }
+        .module-count { font-size: 0.7em; color: #666; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 6px; }
+        .module-arrow { color: #666; transition: transform 0.3s; font-size: 0.7em; }
+        .module-arrow.collapsed { transform: rotate(-90deg); }
+        .module-body { padding: 8px 12px; max-height: 400px; overflow-y: auto; transition: max-height 0.4s; }
+        .module-body.collapsed { max-height: 0; padding: 0 12px; overflow: hidden; }
+        .module-body::-webkit-scrollbar { width: 5px; }
+        .module-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .module-body::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.3); border-radius: 3px; }
+        .category { margin-bottom: 10px; }
+        .category:last-child { margin-bottom: 0; }
+        .category-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; padding: 6px 10px; background: rgba(123,47,247,0.1); border-radius: 6px; cursor: pointer; user-select: none; }
+        .category-header:hover { background: rgba(123,47,247,0.15); }
+        .category-dot { width: 6px; height: 6px; background: #7b2ff7; border-radius: 50%; }
+        .category-name { font-size: 0.85em; font-weight: 500; color: #c4a0ff; flex: 1; }
+        .category-arrow { color: #666; transition: transform 0.3s; font-size: 0.7em; }
+        .category-arrow.collapsed { transform: rotate(-90deg); }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 5px; padding-left: 16px; max-height: 350px; overflow-y: auto; transition: max-height 0.3s; }
+        .tags-container.collapsed { max-height: 0; overflow: hidden; }
+        .tags-container::-webkit-scrollbar { width: 4px; }
+        .tags-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+        .tags-container::-webkit-scrollbar-thumb { background: rgba(123,47,247,0.3); border-radius: 2px; }
+        .prompt-tag { padding: 4px 10px; background: rgba(0,210,255,0.08); border: 1px solid rgba(0,210,255,0.2); border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 0.82em; user-select: none; white-space: nowrap; }
+        .prompt-tag:hover { background: rgba(0,210,255,0.15); transform: translateY(-1px); }
+        .prompt-tag.selected { background: linear-gradient(135deg, rgba(0,210,255,0.3), rgba(123,47,247,0.3)); border-color: #00d2ff; box-shadow: 0 0 8px rgba(0,210,255,0.3); }
+        .prompt-tag.hidden { display: none; }
+        .scaffold-card { background: linear-gradient(135deg, rgba(0,210,255,0.05), rgba(123,47,247,0.05)); border: 2px solid rgba(0,210,255,0.2); border-radius: 10px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; position: relative; }
+        .scaffold-card:hover { border-color: #00d2ff; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,210,255,0.3); }
+        .scaffold-card.hidden { display: none; }
+        .scaffold-card.selected { border-color: #50c878; background: linear-gradient(135deg, rgba(80,200,120,0.15), rgba(0,210,255,0.15)); box-shadow: 0 0 20px rgba(80,200,120,0.5), inset 0 0 20px rgba(80,200,120,0.1); transform: translateY(-3px); }
+        .scaffold-card.selected::after { content: '✓ 已选中'; position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #50c878, #3da862); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 0.75em; font-weight: bold; box-shadow: 0 2px 8px rgba(80,200,120,0.5); z-index: 10; }
+        .scaffold-card-image { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: rgba(0,0,0,0.3); }
+        .scaffold-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .scaffold-card-icon { font-size: 1.2em; }
+        .scaffold-card-title { font-size: 0.9em; font-weight: 600; color: #00d2ff; }
+        .scaffold-card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+        .scaffold-tag { padding: 2px 8px; background: rgba(0,210,255,0.1); border-radius: 10px; font-size: 0.72em; color: #888; }
+        .scaffold-card-footer { margin-top: 8px; font-size: 0.7em; color: #666; display: flex; align-items: center; gap: 4px; }
+        .scaffold-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .result-panel { width: 340px; min-width: 340px; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); padding: 16px; position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto; }
+        .result-panel::-webkit-scrollbar { width: 5px; }
+        .result-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .result-panel::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.3); border-radius: 3px; }
+        .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .result-title { font-size: 1em; font-weight: 600; color: #00d2ff; }
+        .copy-mode-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 2px; }
+        .copy-mode-btn { padding: 4px 10px; border: none; background: transparent; color: #888; cursor: pointer; border-radius: 4px; font-size: 0.78em; transition: all 0.2s; }
+        .copy-mode-btn.active { background: rgba(0,210,255,0.3); color: #00d2ff; }
+        .result-area { background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; font-size: 0.85em; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
+        .result-area::-webkit-scrollbar { width: 4px; }
+        .result-area::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 2px; }
+        .result-area::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.3); border-radius: 2px; }
+        .result-empty { color: #555; font-style: italic; }
+        .selected-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; max-height: 90px; overflow-y: auto; }
+        .selected-tag { padding: 3px 7px; background: rgba(0,210,255,0.2); border-radius: 8px; font-size: 0.75em; display: flex; align-items: center; gap: 4px; }
+        .selected-tag .remove { cursor: pointer; opacity: 0.6; }
+        .selected-tag .remove:hover { opacity: 1; }
+        .result-stats { font-size: 0.78em; color: #666; margin-bottom: 10px; }
+        .result-actions { display: flex; gap: 8px; }
+        .btn { flex: 1; padding: 9px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-primary { background: linear-gradient(135deg, #00d2ff, #7b2ff7); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,210,255,0.4); }
+        .btn-secondary { background: rgba(255,255,255,0.08); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.15); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .custom-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .custom-label { display: block; margin-bottom: 6px; color: #888; font-size: 0.82em; }
+        .custom-textarea { width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #e0e0e0; font-size: 0.82em; resize: vertical; min-height: 50px; max-height: 100px; }
+        .custom-textarea:focus { outline: none; border-color: #00d2ff; }
+        .negative-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .negative-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; margin-bottom: 6px; }
+        .negative-toggle input { display: none; }
+        .toggle-switch { width: 34px; height: 18px; background: rgba(255,255,255,0.1); border-radius: 9px; position: relative; transition: all 0.3s; flex-shrink: 0; }
+        .toggle-switch::after { content: ''; position: absolute; width: 14px; height: 14px; background: #666; border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
+        .negative-toggle input:checked + .toggle-switch { background: rgba(255,80,80,0.4); }
+        .negative-toggle input:checked + .toggle-switch::after { left: 18px; background: #ff5050; }
+        .negative-text { font-size: 0.82em; color: #888; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: linear-gradient(135deg, #00d2ff, #7b2ff7); color: white; padding: 12px 24px; border-radius: 8px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 1000; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 文生图提示词工坊 Pro</h1>
+            <p class="subtitle">1000+ 精细提示词 | 多级分类 | 中英文切换复制</p>
+        </header>
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="🔍 搜索提示词（支持中英文）..." id="searchInput">
+                </div>
+                <div class="modules-grid" id="modulesContainer"></div>
+            </div>
+            <div class="result-panel">
+                <div class="result-header">
+                    <span class="result-title">📝 生成的提示词</span>
+                    <div class="copy-mode-toggle">
+                        <button class="copy-mode-btn" data-mode="en" onclick="setCopyMode('en')">English</button>
+                        <button class="copy-mode-btn active" data-mode="cn" onclick="setCopyMode('cn')">中文</button>
+                        <button class="copy-mode-btn" data-mode="both" onclick="setCopyMode('both')">双语</button>
+                    </div>
+                </div>
+                <div class="result-area" id="resultArea">
+                    <span class="result-empty">请从左侧选择提示词...</span>
+                </div>
+                <div class="selected-tags" id="selectedTags"></div>
+                <div class="result-stats" id="resultStats">已选择: 0 个提示词</div>
+                <div class="result-actions">
+                    <button class="btn btn-primary" onclick="copyPrompt()"><span>📋</span> 复制</button>
+                    <button class="btn btn-secondary" onclick="clearAll()"><span>🗑️</span> 清空</button>
+                </div>
+                <div class="custom-section">
+                    <label class="custom-label">自定义提示词（将添加到末尾）</label>
+                    <textarea class="custom-textarea" id="customInput" placeholder="输入自定义提示词..."></textarea>
+                </div>
+                <div class="negative-section">
+                    <label class="negative-toggle">
+                        <input type="checkbox" id="includeNegative">
+                        <span class="toggle-switch"></span>
+                        <span class="negative-text">添加负面提示词</span>
+                    </label>
+                    <textarea class="custom-textarea" id="negativeInput" placeholder="负面提示词（如：low quality, blurry, deformed）"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    
+<script>
+const promptData = {
+    "🚀 快捷脚手架": {
+        "人像摄影": {
+            "清新日系": { 
+                en: "natural lighting, soft focus, pastel colors, shallow depth of field, 85mm portrait lens, Japanese aesthetic, fresh and clean atmosphere, film grain", 
+                cn: "自然光，柔和对焦，马卡龙色系，浅景深，85mm人像镜头，日系美学，清新干净氛围，胶片颗粒感" 
+            },
+            "欧美时尚": { 
+                en: "fashion photography, studio lighting, high contrast, sharp focus, 70-200mm telephoto, Vogue style, professional model, dramatic shadows", 
+                cn: "时尚摄影，工作室灯光，高对比度，精准对焦，70-200mm长焦，Vogue风格，专业模特，戏剧性阴影" 
+            },
+            "复古胶片": { 
+                en: "vintage film photography, Kodak Portra 400, warm tones, light leaks, film grain, nostalgic mood, soft glow, retro 70s style", 
+                cn: "复古胶片摄影，柯达人像400，暖色调，漏光效果，胶片颗粒，怀旧氛围，柔和光晕，70年代复古风" 
+            },
+            "街头抓拍": { 
+                en: "street photography, candid moment, natural light, 35mm lens, urban environment, documentary style, authentic emotions, gritty atmosphere", 
+                cn: "街头摄影，抓拍瞬间，自然光线，35mm镜头，城市环境，纪录片风格，真实情感，粗粝氛围" 
+            },
+            "梦幻人像": { 
+                en: "ethereal portrait, soft dreamy lighting, bokeh background, pastel color palette, romantic atmosphere, lens flare, dreamlike quality", 
+                cn: "空灵人像，柔和梦幻灯光，散景背景，粉彩色调，浪漫氛围，镜头光晕，梦幻质感" 
+            }
+        },
+        "风景摄影": {
+            "黄金时刻": { 
+                en: "golden hour lighting, dramatic sky, warm orange tones, long exposure, landscape photography, vivid colors, professional composition, 24mm wide angle", 
+                cn: "黄金时刻光线，戏剧性天空，暖橙色调，长曝光，风景摄影，鲜艳色彩，专业构图，24mm广角" 
+            },
+            "极简风光": { 
+                en: "minimalist landscape, clean composition, negative space, soft pastel sky, serene atmosphere, long exposure water, Zen aesthetic", 
+                cn: "极简风光，简洁构图，留白，柔和粉彩天空，宁静氛围，长曝光水面，禅意美学" 
+            },
+            "壮丽山川": { 
+                en: "epic mountain landscape, dramatic clouds, deep valley, aerial perspective, majestic scenery, National Geographic style, ultra wide angle, HDR", 
+                cn: "壮丽山川风景，戏剧性云层，深邃峡谷，航拍视角，宏伟景色，国家地理风格，超广角，HDR" 
+            },
+            "星空银河": { 
+                en: "Milky Way photography, starry night sky, long exposure, astrophotography, dark foreground silhouette, cosmic atmosphere, 14mm ultra wide", 
+                cn: "银河摄影，星空夜空，长曝光，天文摄影，暗部前景剪影，宇宙氛围，14mm超广角" 
+            },
+            "海景日落": { 
+                en: "ocean sunset, dramatic clouds, golden reflections on water, long exposure silky water, warm color palette, peaceful atmosphere", 
+                cn: "海边日落，戏剧性云层，水面金色倒影，长曝光丝滑水面，暖色调，宁静氛围" 
+            }
+        },
+        "产品摄影": {
+            "极简产品": { 
+                en: "product photography, minimalist white background, studio lighting, soft shadows, commercial quality, clean composition, sharp focus, high-end look", 
+                cn: "产品摄影，极简白色背景，工作室灯光，柔和阴影，商业品质，简洁构图，精准对焦，高端质感" 
+            },
+            "美食摄影": { 
+                en: "food photography, overhead shot, rustic wooden table, natural window light, appetizing styling, shallow depth of field, warm tones, cookbook style", 
+                cn: "美食摄影，俯拍视角，质朴木桌，自然窗光，诱人摆盘，浅景深，暖色调，食谱风格" 
+            },
+            "科技产品": { 
+                en: "tech product photography, dark background, dramatic lighting, metallic reflections, futuristic feel, premium quality, studio shot, LED accent", 
+                cn: "科技产品摄影，深色背景，戏剧性灯光，金属反射，未来感，优质质感，工作室拍摄，LED点缀" 
+            },
+            "美妆护肤": { 
+                en: "beauty product photography, soft gradient background, clean aesthetic, luxurious feel, glass texture, dewy freshness, premium skincare look", 
+                cn: "美妆产品摄影，柔和渐变背景，简洁美学，奢华质感，玻璃质地，水润清新，高端护肤品外观" 
+            },
+            "珠宝首饰": { 
+                en: "jewelry photography, dark velvet background, dramatic spotlight, diamond sparkle, luxury feel, macro detail, elegant composition", 
+                cn: "珠宝摄影，深色天鹅绒背景，戏剧性聚光灯，钻石闪耀，奢华质感，微距细节，优雅构图" 
+            }
+        },
+        "概念艺术": {
+            "奇幻世界": { 
+                en: "fantasy concept art, epic landscape, magical atmosphere, volumetric lighting, detailed environment, matte painting style, cinematic composition, 8K", 
+                cn: "奇幻概念艺术，史诗级风景，魔法氛围，体积光，精细环境，数字绘景风格，电影构图，8K" 
+            },
+            "科幻场景": { 
+                en: "sci-fi concept art, futuristic cityscape, neon lights, cyberpunk atmosphere, detailed architecture, holographic elements, cinematic lighting", 
+                cn: "科幻概念艺术，未来城景，霓虹灯，赛博朋克氛围，精细建筑，全息元素，电影灯光" 
+            },
+            "暗黑风格": { 
+                en: "dark fantasy art, gothic atmosphere, dramatic shadows, moody lighting, detailed textures, dark color palette, mysterious vibe, horror elements", 
+                cn: "暗黑奇幻艺术，哥特氛围，戏剧性阴影，忧郁灯光，精细纹理，暗色调，神秘氛围，恐怖元素" 
+            },
+            "童话风格": { 
+                en: "fairy tale illustration, whimsical atmosphere, soft glowing light, magical forest, enchanting colors, storybook style, dreamy quality, Studio Ghibli inspired", 
+                cn: "童话插画，奇幻氛围，柔和发光光线，魔法森林，迷人色彩，绘本风格，梦幻质感，宫崎骏风" 
+            },
+            "废土末日": { 
+                en: "post-apocalyptic concept art, ruined city, overgrown vegetation, dramatic sky, desolate atmosphere, detailed decay, cinematic composition", 
+                cn: "末日废土概念艺术，废墟城市，植被蔓延，戏剧性天空，荒凉氛围，精细衰败细节，电影构图" 
+            }
+        },
+        "动漫风格": {
+            "日系动漫": { 
+                en: "Japanese anime style, cel shading, vibrant colors, detailed character design, expressive eyes, dynamic pose, clean line art, Studio Ghibli quality", 
+                cn: "日系动漫风格，赛璐璐着色，鲜艳色彩，精细角色设计，生动眼睛，动态姿势，干净线稿，吉卜力品质" 
+            },
+            "韩漫风格": { 
+                en: "Korean webtoon style, modern illustration, soft shading, pastel colors, elegant character design, romantic atmosphere, digital art", 
+                cn: "韩漫风格，现代插画，柔和阴影，粉彩色调，优雅角色设计，浪漫氛围，数字艺术" 
+            },
+            "厚涂风格": { 
+                en: "thick paint style, painterly illustration, rich textures, vibrant colors, dramatic lighting, detailed brushstrokes, artstation trending", 
+                cn: "厚涂风格，绘画感插画，丰富纹理，鲜艳色彩，戏剧性灯光，精细笔触，ArtStation热门" 
+            },
+            "像素风格": { 
+                en: "pixel art, retro game style, 16-bit aesthetic, limited color palette, nostalgic feel, detailed pixel work, charming design", 
+                cn: "像素艺术，复古游戏风格，16位美学，有限色怀旧感，精致像素，可爱设计" 
+            },
+            "Q版萌系": { 
+                en: "chibi style, cute character design, big head small body, kawaii aesthetic, pastel colors, adorable expression, simple background", 
+                cn: "Q版风格，可爱角色设计，大头小身体，卡哇伊美学，粉彩色调，萌萌表情，简洁背景" 
+            }
+        },
+        "写实风格": {
+            "超写实人像": { 
+                en: "photorealistic portrait, hyper-detailed skin texture, natural lighting, 8K resolution, sharp focus, realistic eyes, professional photography, RAW quality", 
+                cn: "超写实人像，超精细皮肤纹理，自然光线，8K分辨率，精准对焦，真实眼睛，专业摄影，RAW品质" 
+            },
+            "电影质感": { 
+                en: "cinematic still, movie scene, dramatic lighting, shallow depth of field, film grain, anamorphic lens, color grading, 35mm film look", 
+                cn: "电影画面，电影场景，戏剧性灯光，浅景深，胶片颗粒，变形宽银幕镜头，调色，35mm胶片感" 
+            },
+            "商业摄影": { 
+                en: "commercial photography, studio lighting setup, clean background, professional retouching, high-end quality, sharp focus, award-winning", 
+                cn: "商业摄影，工作室灯光布置，干净背景，专业修图，高端品质，精准对焦，获奖级别" 
+            },
+            "纪实摄影": { 
+                en: "documentary photography, photojournalism, authentic moment, natural light, candid emotion, powerful composition, storytelling, gritty reality", 
+                cn: "纪实摄影，新闻摄影，真实瞬间，自然光线，真实情感，有力构图，叙事性，粗粝现实" 
+            },
+            "黑白艺术": { 
+                en: "black and white photography, high contrast, dramatic shadows, timeless aesthetic, fine art print, emotional depth, minimalist composition", 
+                cn: "黑白摄影，高对比度，戏剧性阴影，永恒美学，艺术微喷，情感深度，极简构图" 
+            }
+        },
+        "艺术风格": {
+            "油画风格": { 
+                en: "oil painting style, thick impasto texture, rich colors, visible brushstrokes, classical composition, museum quality, Rembrandt lighting", 
+                cn: "油画风格，厚涂肌理质感，丰富色彩，可见笔触，古典构图，博物馆品质，伦勃朗灯光" 
+            },
+            "水彩风格": { 
+                en: "watercolor painting, soft flowing colors, transparent layers, wet-on-wet technique, delicate washes, paper texture, artistic splatter", 
+                cn: "水彩画风，柔和流动色彩，透明层次，湿画法，细腻渲染，纸张纹理，艺术泼洒" 
+            },
+            "素描风格": { 
+                en: "pencil sketch, detailed hatching, cross-hatching technique, graphite shading, realistic drawing, paper texture, fine art quality", 
+                cn: "铅笔素描，精细排线，交叉排线技法，石墨阴影，写实绘画，纸张纹理，艺术品质" 
+            },
+            "波普艺术": { 
+                en: "pop art style, bold colors, Ben-Day dots, comic book aesthetic, Andy Warhol inspired, high contrast, graphic design feel", 
+                cn: "波普艺术风格，大胆色彩，本戴点，漫画书美学，安迪沃霍尔风格，高对比度，平面设计感" 
+            },
+            "浮世绘风格": { 
+                en: "Japanese ukiyo-e style, woodblock print aesthetic, flat colors, outlined forms, traditional composition, Edo period inspiration", 
+                cn: "日式浮世绘风格，木版画美学，平涂色彩，勾线造型，传统构图，江户时代灵感" 
+            }
+        }
+    },
+    "👤 人物特征": {
+        "身材体型": {
+            "丰满型": { en: "voluptuous body", cn: "丰满型" },
+            "苗条型": { en: "slim body", cn: "苗条型" },
+            "健美型": { en: "athletic build", cn: "健美型" },
+            "娇小型": { en: "petite body", cn: "娇小型" },
+            "高挑型": { en: "tall and slender", cn: "高挑型" },
+            "圆润型": { en: "curvy body", cn: "圆润型" },
+            "纤细型": { en: "slender figure", cn: "纤细型" },
+            "肌肉型": { en: "muscular build", cn: "肌肉型" },
+            "沙漏型": { en: "hourglass figure", cn: "沙漏型" },
+            "苹果型": { en: "apple-shaped body", cn: "苹果型" }
+        },
+        "胸部特征": {
+            "大胸": { en: "large breasts", cn: "大胸" },
+            "中等胸围": { en: "medium breasts", cn: "中等胸围" },
+            "小胸": { en: "small breasts", cn: "小胸" },
+            "平胸": { en: "flat chest", cn: "平胸" },
+            "丰满胸部": { en: "full bust", cn: "丰满胸部" },
+            "挺拔胸部": { en: "perky breasts", cn: "挺拔胸部" }
+        },
+        "臀部特征": {
+            "丰满翘臀": { en: "round big butt", cn: "丰满翘臀" },
+            "紧实翘臀": { en: "toned butt", cn: "紧实翘臀" },
+            "平坦臀部": { en: "flat butt", cn: "平坦臀部" },
+            "宽臀": { en: "wide hips", cn: "宽臀" },
+            "蜜桃臀": { en: "peach butt", cn: "蜜桃臀" }
+        },
+        "腿部特征": {
+            "修长美腿": { en: "long slender legs", cn: "修长美腿" },
+            "粗壮大腿": { en: "thick thighs", cn: "粗壮大腿" },
+            "纤细双腿": { en: "slim legs", cn: "纤细双腿" },
+            "肌肉小腿": { en: "muscular calves", cn: "肌肉小腿" },
+            "笔直美腿": { en: "straight legs", cn: "笔直美腿" }
+        },
+        "年龄外貌": {
+            "萝莉": { en: "loli, young girl", cn: "萝莉" },
+            "少女": { en: "young girl, teenage", cn: "少女" },
+            "御姐": { en: "mature woman", cn: "御姐" },
+            "御姐气质": { en: "mature elegant woman", cn: "御姐气质" },
+            "熟女": { en: "mature lady", cn: "熟女" },
+            "美少年": { en: "beautiful young man", cn: "美少年" },
+            "帅大叔": { en: "handsome mature man", cn: "帅大叔" },
+            "正太": { en: "shota, young boy", cn: "正太" },
+            "老爷爷": { en: "old man", cn: "老爷爷" },
+            "老婆婆": { en: "old woman", cn: "老婆婆" }
+        },
+        "面部特征": {
+            "精致五官": { en: "beautiful facial features", cn: "精致五官" },
+            "瓜子脸": { en: "oval face", cn: "瓜子脸" },
+            "圆脸": { en: "round face", cn: "圆脸" },
+            "方脸": { en: "square face", cn: "方脸" },
+            "高鼻梁": { en: "high nose bridge", cn: "高鼻梁" },
+            "小巧鼻子": { en: "small nose", cn: "小巧鼻子" },
+            "樱桃小嘴": { en: "cherry lips", cn: "樱桃小嘴" },
+            "丰满嘴唇": { en: "full lips", cn: "丰满嘴唇" },
+            "丹凤眼": { en: "phoenix eyes", cn: "丹凤眼" },
+            "大眼睛": { en: "big eyes", cn: "大眼睛" },
+            "桃花眼": { en: "peach blossom eyes", cn: "桃花眼" },
+            "杏眼": { en: "almond eyes", cn: "杏眼" },
+            "卧蚕": { en: "aegyo-sal", cn: "卧蚕" },
+            "长睫毛": { en: "long eyelashes", cn: "长睫毛" },
+            "高颧骨": { en: "high cheekbones", cn: "高颧骨" }
+        },
+        "眼睛颜色": {
+            "蓝色眼睛": { en: "blue eyes", cn: "蓝色眼睛" },
+            "绿色眼睛": { en: "green eyes", cn: "绿色眼睛" },
+            "棕色眼睛": { en: "brown eyes", cn: "棕色眼睛" },
+            "紫色眼睛": { en: "purple eyes", cn: "紫色眼睛" },
+            "红色眼睛": { en: "red eyes", cn: "红色眼睛" },
+            "金色眼睛": { en: "golden eyes", cn: "金色眼睛" },
+            "异色瞳": { en: "heterochromia", cn: "异色瞳" },
+            "银色眼睛": { en: "silver eyes", cn: "银色眼睛" },
+            "黑色眼睛": { en: "black eyes", cn: "黑色眼睛" },
+            "粉色眼睛": { en: "pink eyes", cn: "粉色眼睛" }
+        },
+        "发型发色": {
+            "长发飘飘": { en: "long flowing hair", cn: "长发飘飘" },
+            "短发": { en: "short hair", cn: "短发" },
+            "波波头": { en: "bob cut", cn: "波波头" },
+            "马尾辫": { en: "ponytail", cn: "马尾辫" },
+            "双马尾": { en: "twintails", cn: "双马尾" },
+            "丸子头": { en: "bun hair", cn: "丸子头" },
+            "麻花辫": { en: "braided hair", cn: "麻花辫" },
+            "卷发": { en: "curly hair", cn: "卷发" },
+            "直发": { en: "straight hair", cn: "直发" },
+            "刘海": { en: "bangs", cn: "刘海" },
+            "黑发": { en: "black hair", cn: "黑发" },
+            "金发": { en: "blonde hair", cn: "金发" },
+            "银发": { en: "silver hair", cn: "银发" },
+            "红发": { en: "red hair", cn: "红发" },
+            "粉发": { en: "pink hair", cn: "粉发" },
+            "蓝发": { en: "blue hair", cn: "蓝发" },
+            "紫发": { en: "purple hair", cn: "紫发" },
+            "绿发": { en: "green hair", cn: "绿发" },
+            "彩虹发": { en: "rainbow hair", cn: "彩虹发" },
+            "渐变发色": { en: "gradient hair color", cn: "渐变发色" },
+            "挑染": { en: "highlighted hair", cn: "挑染" },
+            "湿发": { en: "wet hair", cn: "湿发" },
+            "凌乱发型": { en: "messy hair", cn: "凌乱发型" }
+        },
+        "肤色特征": {
+            "白皙皮肤": { en: "fair skin", cn: "白皙皮肤" },
+            "小麦色皮肤": { en: "tanned skin", cn: "小麦色皮肤" },
+            "古铜色皮肤": { en: "bronze skin", cn: "古铜色皮肤" },
+            "深色皮肤": { en: "dark skin", cn: "深色皮肤" },
+            "苍白皮肤": { en: "pale skin", cn: "苍白皮肤" },
+            "粉嫩皮肤": { en: "rosy skin", cn: "粉嫩皮肤" },
+            "雀斑": { en: "freckles", cn: "雀斑" }
+        },
+        "表情神态": {
+            "微笑": { en: "smiling", cn: "微笑" },
+            "大笑": { en: "laughing", cn: "大笑" },
+            "含羞": { en: "shy smile", cn: "含羞" },
+            "妩媚": { en: "seductive smile", cn: "妩媚" },
+            "冷漠": { en: "cold expression", cn: "冷漠" },
+            "严肃": { en: "serious expression", cn: "严肃" },
+            "忧郁": { en: "melancholic expression", cn: "忧郁" },
+            "惊讶": { en: "surprised expression", cn: "惊讶" },
+            "愤怒": { en: "angry expression", cn: "愤怒" },
+            "诱惑": { en: "seductive gaze", cn: "诱惑" },
+            "泪眼": { en: "teary eyes", cn: "泪眼" },
+            "羞涩": { en: "blushing", cn: "羞涩" }
+        },
+        "姿势动作": {
+            "站姿": { en: "standing pose", cn: "站姿" },
+            "坐姿": { en: "sitting pose", cn: "坐姿" },
+            "躺姿": { en: "lying down pose", cn: "躺姿" },
+            "蹲姿": { en: "squatting pose", cn: "蹲姿" },
+            "跪姿": { en: "kneeling pose", cn: "跪姿" },
+            "走路": { en: "walking pose", cn: "走路" },
+            "奔跑": { en: "running pose", cn: "奔跑" },
+            "跳跃": { en: "jumping pose", cn: "跳跃" },
+            "飞天": { en: "floating in air", cn: "飞天" },
+            "回眸": { en: "looking back pose", cn: "回眸" },
+            "叉腰": { en: "hands on hips", cn: "叉腰" },
+            "双手合十": { en: "praying hands", cn: "双手合十" },
+            "托腮": { en: "chin rest on hand", cn: "托腮" },
+            "撩头发": { en: "touching hair", cn: "撩头发" },
+            "伸展": { en: "stretching pose", cn: "伸展" },
+            "弯腰": { en: "bending forward", cn: "弯腰" },
+            "侧身": { en: "side pose", cn: "侧身" },
+            "背影": { en: "back view", cn: "背影" }
+        },
+        "手势动作": {
+            "比心": { en: "heart gesture", cn: "比心" },
+            "V字手势": { en: "peace sign", cn: "V字手势" },
+            "敬礼": { en: "saluting", cn: "敬礼" },
+            "捂嘴": { en: "covering mouth", cn: "捂嘴" },
+            "指向前方": { en: "pointing forward", cn: "指向前方" },
+            "张开双臂": { en: "arms wide open", cn: "张开双臂" },
+            "抱胸": { en: "arms crossed", cn: "抱胸" },
+            "手放在头上": { en: "hand on head", cn: "手放在头上" }
+        }
+    },
+    "👗 服装服饰": {
+        "日常服装": {
+            "T恤": { en: "t-shirt", cn: "T恤" },
+            "牛仔裤": { en: "jeans", cn: "牛仔裤" },
+            "卫衣": { en: "hoodie", cn: "卫衣" },
+            "毛衣": { en: "sweater", cn: "毛衣" },
+            "衬衫": { en: "shirt", cn: "衬衫" },
+            "连衣裙": { en: "dress", cn: "连衣裙" },
+            "短裤": { en: "shorts", cn: "短裤" },
+            "长裤": { en: "long pants", cn: "长裤" },
+            "夹克": { en: "jacket", cn: "夹克" },
+            "风衣": { en: "trench coat", cn: "风衣" },
+            "西装": { en: "suit", cn: "西装" },
+            "背心": { en: "tank top", cn: "背心" },
+            "开衫": { en: "cardigan", cn: "开衫" },
+            "马甲": { en: "vest", cn: "马甲" }
+        },
+        "裙子类型": {
+            "短裙": { en: "short skirt", cn: "短裙" },
+            "长裙": { en: "long skirt", cn: "长裙" },
+            "半身裙": { en: "midi skirt", cn: "半身裙" },
+            "蓬蓬裙": { en: "tutu skirt", cn: "蓬蓬裙" },
+            "百褶裙": { en: "pleated skirt", cn: "百褶裙" },
+            "包臀裙": { en: "pencil skirt", cn: "包臀裙" },
+            "鱼尾裙": { en: "mermaid skirt", cn: "鱼尾裙" },
+            "A字裙": { en: "A-line skirt", cn: "A字裙" },
+            "蛋糕裙": { en: "tiered skirt", cn: "蛋糕裙" },
+            "热裤": { en: "hot pants", cn: "热裤" }
+        },
+        "内衣类型": {
+            "文胸": { en: "bra", cn: "文胸" },
+            "比基尼": { en: "bikini", cn: "比基尼" },
+            "丁字裤": { en: "thong", cn: "丁字裤" },
+            "吊带袜": { en: "garter belt", cn: "吊带袜" },
+            "丝袜": { en: "stockings", cn: "丝袜" },
+            "渔网袜": { en: "fishnet stockings", cn: "渔网袜" },
+            "过膝袜": { en: "thigh-high stockings", cn: "过膝袜" },
+            "长筒袜": { en: "knee-high socks", cn: "长筒袜" },
+            "连裤袜": { en: "pantyhose", cn: "连裤袜" }
+        },
+        "鞋类": {
+            "高跟鞋": { en: "high heels", cn: "高跟鞋" },
+            "短靴": { en: "ankle boots", cn: "短靴" },
+            "长靴": { en: "knee-high boots", cn: "长靴" },
+            "过膝靴": { en: "thigh-high boots", cn: "过膝靴" },
+            "运动鞋": { en: "sneakers", cn: "运动鞋" },
+            "凉鞋": { en: "sandals", cn: "凉鞋" },
+            "拖鞋": { en: "slippers", cn: "拖鞋" },
+            "帆布鞋": { en: "canvas shoes", cn: "帆布鞋" },
+            "马丁靴": { en: "martin boots", cn: "马丁靴" },
+            "木屐": { en: "clogs", cn: "木屐" }
+        },
+        "二次元服装": {
+            "JK制服": { en: "JK uniform", cn: "JK制服" },
+            "洛丽塔裙": { en: "Lolita dress", cn: "洛丽塔裙" },
+            "哥特洛丽塔": { en: "Gothic Lolita", cn: "哥特洛丽塔" },
+            "汉服": { en: "Hanfu", cn: "汉服" },
+            "和服": { en: "kimono", cn: "和服" },
+            "巫女服": { en: "miko outfit", cn: "巫女服" },
+            "魔法少女服": { en: "magical girl outfit", cn: "魔法少女服" },
+            "女仆装": { en: "maid outfit", cn: "女仆装" },
+            "水手服": { en: "sailor uniform", cn: "水手服" },
+            "校服": { en: "school uniform", cn: "校服" }
+        },
+        "特殊服装": {
+            "婚纱": { en: "wedding dress", cn: "婚纱" },
+            "晚礼服": { en: "evening gown", cn: "晚礼服" },
+            "旗袍": { en: "cheongsam, qipao", cn: "旗袍" },
+            "舞会礼服": { en: "ball gown", cn: "舞会礼服" },
+            "军装": { en: "military uniform", cn: "军装" },
+            "护士服": { en: "nurse outfit", cn: "护士服" },
+            "警服": { en: "police uniform", cn: "警服" },
+            "厨师服": { en: "chef outfit", cn: "厨师服" }
+        },
+        "内衣裤": {
+            "蕾丝内衣": { en: "lace lingerie", cn: "蕾丝内衣" },
+            "丝绸内衣": { en: "silk lingerie", cn: "丝绸内衣" },
+            "情趣内衣": { en: "sexy lingerie", cn: "情趣内衣" },
+            "睡衣": { en: "pajamas", cn: "睡衣" },
+            "吊带睡裙": { en: "slip dress", cn: "吊带睡裙" },
+            "浴袍": { en: "bathrobe", cn: "浴袍" }
+        },
+        "配饰": {
+            "项链": { en: "necklace", cn: "项链" },
+            "耳环": { en: "earrings", cn: "耳环" },
+            "手链": { en: "bracelet", cn: "手链" },
+            "戒指": { en: "ring", cn: "戒指" },
+            "头饰": { en: "hair accessory", cn: "头饰" },
+            "发带": { en: "headband", cn: "发带" },
+            "帽子": { en: "hat", cn: "帽子" },
+            "眼镜": { en: "glasses", cn: "眼镜" },
+            "墨镜": { en: "sunglasses", cn: "墨镜" },
+            "围巾": { en: "scarf", cn: "围巾" },
+            "手套": { en: "gloves", cn: "手套" },
+            "翅膀": { en: "wings", cn: "翅膀" },
+            "光环": { en: "halo", cn: "光环" },
+            "角": { en: "horns", cn: "角" },
+            "猫耳": { en: "cat ears", cn: "猫耳" },
+            "兔耳": { en: "bunny ears", cn: "兔耳" },
+            "尾巴": { en: "tail", cn: "尾巴" }
+        },
+        "服装材质": {
+            "丝绸": { en: "silk", cn: "丝绸" },
+            "蕾丝": { en: "lace", cn: "蕾丝" },
+            "棉质": { en: "cotton", cn: "棉质" },
+            "牛仔": { en: "denim", cn: "牛仔" },
+            "皮革": { en: "leather", cn: "皮革" },
+            "PVC材质": { en: "PVC material", cn: "PVC材质" },
+            "网纱": { en: "mesh", cn: "网纱" },
+            "雪纺": { en: "chiffon", cn: "雪纺" },
+            "绒面": { en: "velvet", cn: "绒面" },
+            "透明薄纱": { en: "sheer fabric", cn: "透明薄纱" }
+        }
+    },
+    "🎨 画面风格": {
+        "画风类型": {
+            "扁平插画": { en: "flat illustration", cn: "扁平插画" },
+            "像素风格": { en: "pixel art", cn: "像素风格" },
+            "赛博朋克": { en: "cyberpunk", cn: "赛博朋克" },
+            "蒸汽波": { en: "vaporwave", cn: "蒸汽波" },
+            "波普艺术": { en: "pop art", cn: "波普艺术" },
+            "超现实主义": { en: "surrealism", cn: "超现实主义" },
+            "极简主义": { en: "minimalism", cn: "极简主义" },
+            "装饰艺术": { en: "art deco", cn: "装饰艺术" },
+            "新艺术运动": { en: "art nouveau", cn: "新艺术运动" },
+            "复古风格": { en: "retro style", cn: "复古风格" },
+            "未来主义": { en: "futurism", cn: "未来主义" },
+            "抽象艺术": { en: "abstract art", cn: "抽象艺术" },
+            "表现主义": { en: "expressionism", cn: "表现主义" },
+            "印象派": { en: "impressionism", cn: "印象派" },
+            "写实主义": { en: "realism", cn: "写实主义" },
+            "奇幻风格": { en: "fantasy style", cn: "奇幻风格" },
+            "暗黑风格": { en: "dark style", cn: "暗黑风格" },
+            "童话风格": { en: "fairy tale style", cn: "童话风格" },
+            "唯美风格": { en: "aesthetic style", cn: "唯美风格" },
+            "哥特风格": { en: "gothic style", cn: "哥特风格" }
+        },
+        "绘画媒介": {
+            "油画": { en: "oil painting", cn: "油画" },
+            "水彩": { en: "watercolor", cn: "水彩" },
+            "素描": { en: "pencil sketch", cn: "素描" },
+            "水墨画": { en: "ink wash painting", cn: "水墨画" },
+            "彩铅": { en: "colored pencil", cn: "彩铅" },
+            "蜡笔画": { en: "crayon drawing", cn: "蜡笔画" },
+            "粉彩画": { en: "pastel drawing", cn: "粉彩画" },
+            "丙烯画": { en: "acrylic painting", cn: "丙烯画" },
+            "版画": { en: "printmaking", cn: "版画" },
+            "喷绘": { en: "spray paint art", cn: "喷绘" },
+            "蚀刻": { en: "etching", cn: "蚀刻" },
+            "木刻": { en: "woodcut", cn: "木刻" }
+        },
+        "二次元风格": {
+            "日系动漫": { en: "Japanese anime style", cn: "日系动漫" },
+            "赛璐璐风格": { en: "cel shading", cn: "赛璐璐风格" },
+            "厚涂风格": { en: "thick paint style", cn: "厚涂风格" },
+            "薄涂风格": { en: "light paint style", cn: "薄涂风格" },
+            "线稿风格": { en: "line art style", cn: "线稿风格" },
+            "彩色线稿": { en: "colored line art", cn: "彩色线稿" },
+            "平涂": { en: "flat coloring", cn: "平涂" },
+            "厚涂赛璐璐": { en: "thick cel shading", cn: "厚涂赛璐璐" },
+            "韩漫风格": { en: "Korean webtoon style", cn: "韩漫风格" },
+            "美漫风格": { en: "American comic style", cn: "美漫风格" }
+        },
+        "3D风格": {
+            "3D渲染": { en: "3D render", cn: "3D渲染" },
+            "等距视角": { en: "isometric view", cn: "等距视角" },
+            "低多边形": { en: "low poly", cn: "低多边形" },
+            "体素风格": { en: "voxel art", cn: "体素风格" },
+            "玻璃拟态": { en: "glassmorphism", cn: "玻璃拟态" },
+            "黏土风格": { en: "claymation style", cn: "黏土风格" },
+            "微缩模型": { en: "miniature model", cn: "微缩模型" },
+            "塑料质感": { en: "plastic texture", cn: "塑料质感" },
+            "金属质感": { en: "metallic texture", cn: "金属质感" },
+            "毛绒质感": { en: "fluffy texture", cn: "毛绒质感" }
+        }
+    },
+    "📷 画面质量": {
+        "画质等级": {
+            "最佳质量": { en: "best quality", cn: "最佳质量" },
+            "高质量": { en: "high quality", cn: "高质量" },
+            "超高画质": { en: "masterpiece", cn: "超高画质" },
+            "杰作": { en: "masterpiece", cn: "杰作" },
+            "专业水准": { en: "professional", cn: "专业水准" },
+            "获奖级别": { en: "award winning", cn: "获奖级别" },
+            "杂志封面级": { en: "magazine cover quality", cn: "杂志封面级" },
+            "画廊级别": { en: "gallery quality", cn: "画廊级别" }
+        },
+        "分辨率": {
+            "4K": { en: "4K resolution", cn: "4K" },
+            "8K": { en: "8K resolution", cn: "8K" },
+            "超高清": { en: "ultra HD", cn: "超高清" },
+            "高分辨率": { en: "high resolution", cn: "高分辨率" },
+            "16K": { en: "16K resolution", cn: "16K" }
+        },
+        "细节程度": {
+            "高度精细": { en: "highly detailed", cn: "高度精细" },
+            "精细纹理": { en: "intricate details", cn: "精细纹理" },
+            "超精细": { en: "extra detailed", cn: "超精细" },
+            "丰富细节": { en: "rich details", cn: "丰富细节" },
+            "精致细节": { en: "finely detailed", cn: "精致细节" },
+            "微距细节": { en: "macro details", cn: "微距细节" },
+            "超高细节": { en: "ultra detailed", cn: "超高细节" }
+        },
+        "画面效果": {
+            "清晰锐利": { en: "sharp focus", cn: "清晰锐利" },
+            "对焦精准": { en: "perfect focus", cn: "对焦精准" },
+            "全景深": { en: "deep focus", cn: "全景深" },
+            "浅景深": { en: "shallow depth of field", cn: "浅景深" },
+            "HDR效果": { en: "HDR", cn: "HDR效果" },
+            "动态范围": { en: "wide dynamic range", cn: "动态范围" },
+            "RAW画质": { en: "RAW photo quality", cn: "RAW画质" },
+            "光学完美": { en: "optically perfect", cn: "光学完美" }
+        }
+    },
+    "💡 光影效果": {
+        "光源类型": {
+            "自然光": { en: "natural lighting", cn: "自然光" },
+            "人工光": { en: "artificial lighting", cn: "人工光" },
+            "环境光": { en: "ambient lighting", cn: "环境光" },
+            "工作室灯光": { en: "studio lighting", cn: "工作室灯光" },
+            "霓虹灯光": { en: "neon lights", cn: "霓虹灯光" },
+            "LED灯光": { en: "LED lighting", cn: "LED灯光" },
+            "烛光": { en: "candlelight", cn: "烛光" },
+            "火光": { en: "firelight", cn: "火光" },
+            "月光": { en: "moonlight", cn: "月光" },
+            "阳光": { en: "sunlight", cn: "阳光" },
+            "星空光线": { en: "starlight", cn: "星空光线" }
+        },
+        "光线方向": {
+            "正面光": { en: "front lighting", cn: "正面光" },
+            "侧光": { en: "side lighting", cn: "侧光" },
+            "逆光": { en: "backlighting", cn: "逆光" },
+            "顶光": { en: "top lighting", cn: "顶光" },
+            "底光": { en: "under lighting", cn: "底光" },
+            "45度光": { en: "45 degree lighting", cn: "45度光" },
+            "伦勃朗光": { en: "Rembrandt lighting", cn: "伦勃朗光" },
+            "蝴蝶光": { en: "butterfly lighting", cn: "蝴蝶光" },
+            "环形光": { en: "ring lighting", cn: "环形光" }
+        },
+        "光线质感": {
+            "柔和光线": { en: "soft lighting", cn: "柔和光线" },
+            "硬光": { en: "hard lighting", cn: "硬光" },
+            "漫射光": { en: "diffused lighting", cn: "漫射光" },
+            "戏剧性灯光": { en: "dramatic lighting", cn: "戏剧性灯光" },
+            "聚光灯": { en: "spotlight", cn: "聚光灯" },
+            "柔光箱": { en: "softbox lighting", cn: "柔光箱" },
+            "边缘光": { en: "rim lighting", cn: "边缘光" },
+            "轮廓光": { en: "silhouette lighting", cn: "轮廓光" }
+        },
+        "特殊光影": {
+            "体积光": { en: "volumetric lighting", cn: "体积光" },
+            "丁达尔效应": { en: "Tyndall effect", cn: "丁达尔效应" },
+            "光束": { en: "light beams", cn: "光束" },
+            "光线散射": { en: "light scattering", cn: "光线散射" },
+            "焦散光": { en: "caustics", cn: "焦散光" },
+            "全局光照": { en: "global illumination", cn: "全局光照" },
+            "光线追踪": { en: "ray tracing", cn: "光线追踪" },
+            "光影交错": { en: "interplay of light and shadow", cn: "光影交错" },
+            "明暗对比": { en: "chiaroscuro", cn: "明暗对比" }
+        },
+        "时间氛围": {
+            "黄金时刻": { en: "golden hour", cn: "黄金时刻" },
+            "蓝色时刻": { en: "blue hour", cn: "蓝色时刻" },
+            "正午阳光": { en: "noon sunlight", cn: "正午阳光" },
+            "黄昏": { en: "dusk", cn: "黄昏" },
+            "日出": { en: "sunrise", cn: "日出" },
+            "日落": { en: "sunset", cn: "日落" },
+            "夜晚": { en: "nighttime", cn: "夜晚" },
+            "黎明": { en: "dawn", cn: "黎明" },
+            "阴天": { en: "overcast sky", cn: "阴天" }
+        }
+    },
+    "🎭 艺术大师": {
+        "日本艺术家": {
+            "宫崎骏风格": { en: "Studio Ghibli style", cn: "宫崎骏风格" },
+            "新海诚风格": { en: "Makoto Shinkai style", cn: "新海诚风格" },
+            "今敏风格": { en: "Satoshi Kon style", cn: "今敏风格" },
+            "大友克洋风格": { en: "Katsuhiro Otomo style", cn: "大友克洋风格" },
+            "CLAMP风格": { en: "CLAMP style", cn: "CLAMP风格" },
+            "尾田荣一郎风格": { en: "Eiichiro Oda style", cn: "尾田荣一郎风格" },
+            "久石让风格": { en: "Joe Hisaishi style", cn: "久石让风格" }
+        },
+        "西方艺术家": {
+            "达利风格": { en: "Salvador Dali style", cn: "达利风格" },
+            "梵高风格": { en: "Van Gogh style", cn: "梵高风格" },
+            "毕加索风格": { en: "Picasso style", cn: "毕加索风格" },
+            "莫奈风格": { en: "Monet style", cn: "莫奈风格" },
+            "安迪沃霍尔风格": { en: "Andy Warhol style", cn: "安迪沃霍尔风格" },
+            "克里姆特风格": { en: "Gustav Klimt style", cn: "克里姆特风格" },
+            "穆夏风格": { en: "Alphonse Mucha style", cn: "穆夏风格" },
+            "雷诺阿风格": { en: "Renoir style", cn: "雷诺阿风格" },
+            "德加风格": { en: "Degas style", cn: "德加风格" },
+            "伦勃朗风格": { en: "Rembrandt style", cn: "伦勃朗风格" }
+        },
+        "奇幻艺术家": {
+            "艾伦·李风格": { en: "Alan Lee style", cn: "艾伦·李风格" },
+            "约翰·豪风格": { en: "John Howe style", cn: "约翰·豪风格" },
+            "吉格尔风格": { en: "H.R. Giger style", cn: "吉格尔风格" },
+            "弗兰克·弗雷泽塔风格": { en: "Frank Frazetta style", cn: "弗兰克·弗雷泽塔风格" },
+            "罗杰·迪恩风格": { en: "Roger Dean style", cn: "罗杰·迪恩风格" },
+            "克里斯·福斯风格": { en: "Chris Foss style", cn: "克里斯·福斯风格" }
+        },
+        "中国艺术家": {
+            "张大千风格": { en: "Zhang Daqian style", cn: "张大千风格" },
+            "齐白石风格": { en: "Qi Baishi style", cn: "齐白石风格" },
+            "徐悲鸿风格": { en: "Xu Beihong style", cn: "徐悲鸿风格" },
+            "林风眠风格": { en: "Lin Fengmian style", cn: "林风眠风格" },
+            "吴冠中风格": { en: "Wu Guanzhong style", cn: "吴冠中风格" }
+        }
+    },
+    "🌍 场景主题": {
+        "自然景观": {
+            "森林": { en: "forest", cn: "森林" },
+            "热带雨林": { en: "tropical rainforest", cn: "热带雨林" },
+            "沙漠": { en: "desert", cn: "沙漠" },
+            "草原": { en: "grassland", cn: "草原" },
+            "雪山": { en: "snow mountain", cn: "雪山" },
+            "火山": { en: "volcano", cn: "火山" },
+            "峡谷": { en: "canyon", cn: "峡谷" },
+            "瀑布": { en: "waterfall", cn: "瀑布" },
+            "湖泊": { en: "lake", cn: "湖泊" },
+            "海洋": { en: "ocean", cn: "海洋" },
+            "河流": { en: "river", cn: "河流" },
+            "湿地": { en: "wetland", cn: "湿地" },
+            "冰川": { en: "glacier", cn: "冰川" },
+            "椰林": { en: "palm forest", cn: "椰林" },
+            "竹林": { en: "bamboo forest", cn: "竹林" },
+            "樱花林": { en: "cherry blossom forest", cn: "樱花林" },
+            "枫叶林": { en: "maple forest", cn: "枫叶林" },
+            "薰衣草田": { en: "lavender field", cn: "薰衣草田" },
+            "向日葵田": { en: "sunflower field", cn: "向日葵田" },
+            "麦田": { en: "wheat field", cn: "麦田" }
+        },
+        "天气现象": {
+            "晴天": { en: "sunny day", cn: "晴天" },
+            "多云": { en: "cloudy", cn: "多云" },
+            "雨天": { en: "rainy day", cn: "雨天" },
+            "暴风雨": { en: "thunderstorm", cn: "暴风雨" },
+            "雪天": { en: "snowy day", cn: "雪天" },
+            "暴风雪": { en: "blizzard", cn: "暴风雪" },
+            "雾天": { en: "foggy", cn: "雾天" },
+            "彩虹": { en: "rainbow", cn: "彩虹" },
+            "极光": { en: "aurora borealis", cn: "极光" },
+            "星空": { en: "starry sky", cn: "星空" },
+            "银河": { en: "Milky Way", cn: "银河" },
+            "流星雨": { en: "meteor shower", cn: "流星雨" },
+            "日蚀": { en: "solar eclipse", cn: "日蚀" },
+            "月蚀": { en: "lunar eclipse", cn: "月蚀" },
+            "闪电": { en: "lightning", cn: "闪电" },
+            "龙卷风": { en: "tornado", cn: "龙卷风" }
+        },
+        "人文建筑": {
+            "未来城市": { en: "futuristic city", cn: "未来城市" },
+            "古代城堡": { en: "ancient castle", cn: "古代城堡" },
+            "哥特大教堂": { en: "Gothic cathedral", cn: "哥特大教堂" },
+            "日式神社": { en: "Japanese shrine", cn: "日式神社" },
+            "日式庭院": { en: "Japanese garden", cn: "日式庭院" },
+            "中式园林": { en: "Chinese garden", cn: "中式园林" },
+            "中式古建筑": { en: "traditional Chinese architecture", cn: "中式古建筑" },
+            "希腊神殿": { en: "Greek temple", cn: "希腊神殿" },
+            "罗马斗兽场": { en: "Roman colosseum", cn: "罗马斗兽场" },
+            "埃及金字塔": { en: "Egyptian pyramid", cn: "埃及金字塔" },
+            "威尼斯水城": { en: "Venice canal", cn: "威尼斯水城" },
+            "巴黎街道": { en: "Paris street", cn: "巴黎街道" },
+            "中式古镇": { en: "ancient Chinese town", cn: "中式古镇" },
+            "北欧村庄": { en: "Nordic village", cn: "北欧村庄" },
+            "科幻太空站": { en: "sci-fi space station", cn: "科幻太空站" },
+            "赛博朋克街道": { en: "cyberpunk street", cn: "赛博朋克街道" },
+            "蒸汽朋克城市": { en: "steampunk city", cn: "蒸汽朋克城市" },
+            "废墟": { en: "ruins", cn: "废墟" },
+            "地下城": { en: "underground city", cn: "地下城" },
+            "浮空岛": { en: "floating island", cn: "浮空岛" }
+        },
+        "室内场景": {
+            "豪华卧室": { en: "luxurious bedroom", cn: "豪华卧室" },
+            "日式房间": { en: "Japanese room", cn: "日式房间" },
+            "中式客厅": { en: "Chinese living room", cn: "中式客厅" },
+            "欧式古典房间": { en: "European classical room", cn: "欧式古典房间" },
+            "图书馆": { en: "library", cn: "图书馆" },
+            "咖啡厅": { en: "cafe", cn: "咖啡厅" },
+            "酒吧": { en: "bar", cn: "酒吧" },
+            "实验室": { en: "laboratory", cn: "实验室" },
+            "工作室": { en: "studio", cn: "工作室" },
+            "厨房": { en: "kitchen", cn: "厨房" },
+            "浴室": { en: "bathroom", cn: "浴室" },
+            "教室": { en: "classroom", cn: "教室" },
+            "办公室": { en: "office", cn: "办公室" },
+            "医院": { en: "hospital", cn: "医院" },
+            "健身房": { en: "gym", cn: "健身房" },
+            "电影院": { en: "cinema", cn: "电影院" }
+        },
+        "特殊场景": {
+            "海底世界": { en: "underwater world", cn: "海底世界" },
+            "太空": { en: "outer space", cn: "太空" },
+            "异世界": { en: "fantasy world", cn: "异世界" },
+            "梦境": { en: "dreamscape", cn: "梦境" },
+            "地狱": { en: "underworld", cn: "地狱" },
+            "天堂": { en: "paradise", cn: "天堂" },
+            "仙境": { en: "wonderland", cn: "仙境" },
+            "末日废土": { en: "post-apocalyptic wasteland", cn: "末日废土" },
+            "赛博朋克城市": { en: "cyberpunk metropolis", cn: "赛博朋克城市" },
+            "蒸汽朋克世界": { en: "steampunk world", cn: "蒸汽朋克世界" },
+            "魔法学院": { en: "magic academy", cn: "魔法学院" },
+            "龙之巢穴": { en: "dragon's lair", cn: "龙之巢穴" },
+            "精灵森林": { en: "elven forest", cn: "精灵森林" },
+            "亡灵墓地": { en: "undead graveyard", cn: "亡灵墓地" }
+        }
+    },
+    "✨ 艺术家与媒介": {
+        "数字艺术风格": {
+            "数字绘画": { en: "digital painting", cn: "数字绘画" },
+            "概念艺术": { en: "concept art", cn: "概念艺术" },
+            "插画": { en: "illustration", cn: "插画" },
+            "漫画": { en: "comic art", cn: "漫画" },
+            "游戏原画": { en: "game art", cn: "游戏原画" },
+            "概念设计": { en: "concept design", cn: "概念设计" },
+            "角色设计": { en: "character design", cn: "角色设计" },
+            "场景设计": { en: "environment design", cn: "场景设计" }
+        },
+        "艺术风格": {
+            "写实": { en: "realistic", cn: "写实" },
+            "半写实": { en: "semi-realistic", cn: "半写实" },
+            "卡通风": { en: "cartoon style", cn: "卡通风" },
+            "涂鸦风": { en: "graffiti style", cn: "涂鸦风" },
+            "极简风": { en: "minimalist", cn: "极简风" },
+            "抽象风": { en: "abstract", cn: "抽象风" },
+            "几何风": { en: "geometric style", cn: "几何风" },
+            "剪影风": { en: "silhouette style", cn: "剪影风" },
+            "复古风": { en: "vintage style", cn: "复古风" },
+            "波普风": { en: "pop art style", cn: "波普风" }
+        },
+        "数字媒介": {
+            "Photoshop风格": { en: "Photoshop style", cn: "Photoshop风格" },
+            "Procreate风格": { en: "Procreate style", cn: "Procreate风格" },
+            "Blender渲染": { en: "Blender render", cn: "Blender渲染" },
+            "Maya渲染": { en: "Maya render", cn: "Maya渲染" },
+            "ZBrush雕刻": { en: "ZBrush sculpture", cn: "ZBrush雕刻" },
+            "Unity渲染": { en: "Unity render", cn: "Unity渲染" },
+            "Unreal渲染": { en: "Unreal Engine render", cn: "Unreal渲染" }
+        },
+        "传统艺术媒介": {
+            "铅笔画": { en: "pencil drawing", cn: "铅笔画" },
+            "炭笔画": { en: "charcoal drawing", cn: "炭笔画" },
+            "粉笔画": { en: "chalk drawing", cn: "粉笔画" },
+            "喷枪画": { en: "airbrush art", cn: "喷枪画" },
+            "马克笔画": { en: "marker drawing", cn: "马克笔画" },
+            "拼贴画": { en: "collage", cn: "拼贴画" },
+            "蚀刻画": { en: "etching", cn: "蚀刻画" },
+            "丝网印刷": { en: "screen print", cn: "丝网印刷" }
+        }
+    },
+    "🎨 色彩氛围": {
+        "色彩温度": {
+            "暖色调": { en: "warm color palette", cn: "暖色调" },
+            "冷色调": { en: "cool color palette", cn: "冷色调" },
+            "中性色调": { en: "neutral color palette", cn: "中性色调" },
+            "冷暖对比": { en: "warm and cool contrast", cn: "冷暖对比" }
+        },
+        "色彩风格": {
+            "高饱和度": { en: "high saturation", cn: "高饱和度" },
+            "低饱和度": { en: "low saturation", cn: "低饱和度" },
+            "莫兰迪色系": { en: "Morandi colors", cn: "莫兰迪色系" },
+            "马卡龙色系": { en: "macaron colors", cn: "马卡龙色系" },
+            "霓虹色彩": { en: "neon colors", cn: "霓虹色彩" },
+            "荧光色彩": { en: "fluorescent colors", cn: "荧光色彩" },
+            "柔和色彩": { en: "soft pastel colors", cn: "柔和色彩" },
+            "大地色系": { en: "earth tones", cn: "大地色系" },
+            "粉彩风格": { en: "pastel colors", cn: "粉彩风格" },
+            "金属色泽": { en: "metallic colors", cn: "金属色泽" },
+            "宝石色调": { en: "jewel tones", cn: "宝石色调" },
+            "糖果色": { en: "candy colors", cn: "糖果色" }
+        },
+        "单色效果": {
+            "黑白": { en: "black and white", cn: "黑白" },
+            "单色": { en: "monochrome", cn: "单色" },
+            "棕褐色": { en: "sepia", cn: "棕褐色" },
+            "蓝色调": { en: "blue tone", cn: "蓝色调" },
+            "红色调": { en: "red tone", cn: "红色调" },
+            "绿色调": { en: "green tone", cn: "绿色调" },
+            "紫色调": { en: "purple tone", cn: "紫色调" },
+            "金色调": { en: "golden tone", cn: "金色调" }
+        },
+        "特殊色彩": {
+            "渐变色彩": { en: "gradient colors", cn: "渐变色彩" },
+            "互补色": { en: "complementary colors", cn: "互补色" },
+            "三色调": { en: "triadic colors", cn: "三色调" },
+            "类似色": { en: "analogous colors", cn: "类似色" },
+            "分裂互补": { en: "split complementary colors", cn: "分裂互补" },
+            "彩虹色": { en: "rainbow colors", cn: "彩虹色" },
+            "霓虹渐变": { en: "neon gradient", cn: "霓虹渐变" }
+        }
+    },
+    "📐 构图视角": {
+        "拍摄角度": {
+            "正面视角": { en: "front view", cn: "正面视角" },
+            "侧面视角": { en: "side view", cn: "侧面视角" },
+            "背面视角": { en: "back view", cn: "背面视角" },
+            "3/4侧面": { en: "three-quarter view", cn: "3/4侧面" },
+            "俯视": { en: "top-down view", cn: "俯视" },
+            "鸟瞰": { en: "bird's eye view", cn: "鸟瞰" },
+            "仰视": { en: "low angle view", cn: "仰视" },
+            "虫视角": { en: "worm's eye view", cn: "虫视角" },
+            "倾斜视角": { en: "Dutch angle", cn: "倾斜视角" },
+            "平视": { en: "eye level view", cn: "平视" },
+            "过肩视角": { en: "over-the-shoulder view", cn: "过肩视角" },
+            "第一人称视角": { en: "first person view", cn: "第一人称视角" }
+        },
+        "镜头类型": {
+            "广角镜头": { en: "wide angle lens", cn: "广角镜头" },
+            "超广角": { en: "ultra wide angle", cn: "超广角" },
+            "标准镜头": { en: "standard lens", cn: "标准镜头" },
+            "长焦镜头": { en: "telephoto lens", cn: "长焦镜头" },
+            "微距镜头": { en: "macro lens", cn: "微距镜头" },
+            "鱼眼镜头": { en: "fisheye lens", cn: "鱼眼镜头" },
+            "移轴镜头": { en: "tilt-shift lens", cn: "移轴镜头" },
+            "人像镜头": { en: "portrait lens", cn: "人像镜头" }
+        },
+        "景深效果": {
+            "浅景深": { en: "shallow depth of field", cn: "浅景深" },
+            "深景深": { en: "deep depth of field", cn: "深景深" },
+            "背景虚化": { en: "bokeh", cn: "背景虚化" },
+            "散景效果": { en: "bokeh effect", cn: "散景效果" },
+            "选择性对焦": { en: "selective focus", cn: "选择性对焦" },
+            "全景深": { en: "everything in focus", cn: "全景深" },
+            "微距特写": { en: "extreme close-up", cn: "微距特写" },
+            "远摄压缩": { en: "telephoto compression", cn: "远摄压缩" }
+        },
+        "构图方式": {
+            "黄金分割": { en: "golden ratio composition", cn: "黄金分割" },
+            "三分法": { en: "rule of thirds", cn: "三分法" },
+            "中心构图": { en: "center composition", cn: "中心构图" },
+            "对角线构图": { en: "diagonal composition", cn: "对角线构图" },
+            "对称构图": { en: "symmetrical composition", cn: "对称构图" },
+            "框架构图": { en: "frame within frame", cn: "框架构图" },
+            "引导线": { en: "leading lines", cn: "引导线" },
+            "填充构图": { en: "fill the frame", cn: "填充构图" },
+            "留白构图": { en: "negative space", cn: "留白构图" },
+            "三角形构图": { en: "triangular composition", cn: "三角形构图" },
+            "螺旋构图": { en: "spiral composition", cn: "螺旋构图" }
+        },
+        "画面比例": {
+            "16:9横版": { en: "16:9 aspect ratio", cn: "16:9横版" },
+            "9:16竖版": { en: "9:16 aspect ratio", cn: "9:16竖版" },
+            "1:1方形": { en: "1:1 square", cn: "1:1方形" },
+            "4:3传统": { en: "4:3 aspect ratio", cn: "4:3传统" },
+            "21:9宽银幕": { en: "21:9 widescreen", cn: "21:9宽银幕" },
+            "全景": { en: "panoramic", cn: "全景" }
+        }
+    },
+    "🌟 特效氛围": {
+        "粒子特效": {
+            "火花": { en: "sparks", cn: "火花" },
+            "火焰": { en: "flames", cn: "火焰" },
+            "烟雾": { en: "smoke", cn: "烟雾" },
+            "灰尘": { en: "dust particles", cn: "灰尘" },
+            "花瓣飘落": { en: "falling petals", cn: "花瓣飘落" },
+            "雪花飘落": { en: "falling snow", cn: "雪花飘落" },
+            "雨滴": { en: "raindrops", cn: "雨滴" },
+            "泡泡": { en: "bubbles", cn: "泡泡" },
+            "萤火虫": { en: "fireflies", cn: "萤火虫" },
+            "光点": { en: "light particles", cn: "光点" },
+            "能量粒子": { en: "energy particles", cn: "能量粒子" },
+            "魔法粒子": { en: "magic particles", cn: "魔法粒子" },
+            "碎片": { en: "debris", cn: "碎片" },
+            "落叶": { en: "falling leaves", cn: "落叶" },
+            "气泡": { en: "bubbles", cn: "气泡" }
+        },
+        "光效": {
+            "光晕": { en: "lens flare", cn: "光晕" },
+            "光芒": { en: "light rays", cn: "光芒" },
+            "光束": { en: "light beams", cn: "光束" },
+            "光环": { en: "halo effect", cn: "光环" },
+            "光圈": { en: "light circles", cn: "光圈" },
+            "星芒": { en: "starburst", cn: "星芒" },
+            "衍射光": { en: "diffraction spikes", cn: "衍射光" },
+            "边缘光": { en: "rim light", cn: "边缘光" },
+            "体积光": { en: "volumetric light", cn: "体积光" },
+            "上帝光线": { en: "god rays", cn: "上帝光线" }
+        },
+        "环境特效": {
+            "雾气": { en: "fog", cn: "雾气" },
+            "薄雾": { en: "mist", cn: "薄雾" },
+            "烟雾缭绕": { en: "smoky atmosphere", cn: "烟雾缭绕" },
+            "水雾": { en: "water mist", cn: "水雾" },
+            "尘埃": { en: "dust", cn: "尘埃" },
+            "蒸汽": { en: "steam", cn: "蒸汽" },
+            "蒸汽朋克烟雾": { en: "steampunk smoke", cn: "蒸汽朋克烟雾" }
+        },
+        "动态特效": {
+            "动态模糊": { en: "motion blur", cn: "动态模糊" },
+            "速度线": { en: "speed lines", cn: "速度线" },
+            "冲击波": { en: "shockwave", cn: "冲击波" },
+            "能量场": { en: "energy field", cn: "能量场" },
+            "魔法阵": { en: "magic circle", cn: "魔法阵" },
+            "传送门": { en: "portal", cn: "传送门" },
+            "爆炸": { en: "explosion", cn: "爆炸" },
+            "闪电": { en: "lightning", cn: "闪电" },
+            "电流": { en: "electricity", cn: "电流" }
+        },
+        "反射折射": {
+            "水面反射": { en: "water reflection", cn: "水面反射" },
+            "镜面反射": { en: "mirror reflection", cn: "镜面反射" },
+            "玻璃反射": { en: "glass reflection", cn: "玻璃反射" },
+            "金属反射": { en: "metal reflection", cn: "金属反射" },
+            "折射效果": { en: "refraction", cn: "折射效果" },
+            "棱镜效果": { en: "prism effect", cn: "棱镜效果" },
+            "彩虹折射": { en: "rainbow refraction", cn: "彩虹折射" }
+        }
+    },
+    "🖌️ 细节修饰": {
+        "纹理质感": {
+            "磨砂质感": { en: "matte texture", cn: "磨砂质感" },
+            "高光泽": { en: "high gloss", cn: "高光泽" },
+            "哑光": { en: "matte finish", cn: "哑光" },
+            "金属光泽": { en: "metallic sheen", cn: "金属光泽" },
+            "丝绸光泽": { en: "silk sheen", cn: "丝绸光泽" },
+            "玻璃质感": { en: "glass texture", cn: "玻璃质感" },
+            "木纹质感": { en: "wood texture", cn: "木纹质感" },
+            "大理石纹理": { en: "marble texture", cn: "大理石纹理" },
+            "皮革纹理": { en: "leather texture", cn: "皮革纹理" },
+            "织物纹理": { en: "fabric texture", cn: "织物纹理" },
+            "岩石纹理": { en: "rock texture", cn: "岩石纹理" },
+            "皮肤纹理": { en: "skin texture", cn: "皮肤纹理" },
+            "水滴质感": { en: "water droplet texture", cn: "水滴质感" },
+            "冰霜质感": { en: "frost texture", cn: "冰霜质感" },
+            "晶体质感": { en: "crystal texture", cn: "晶体质感" }
+        },
+        "发光效果": {
+            "自发光": { en: "self-illuminated", cn: "自发光" },
+            "荧光": { en: "fluorescent", cn: "荧光" },
+            "磷光": { en: "phosphorescent", cn: "磷光" },
+            "霓虹灯效果": { en: "neon glow", cn: "霓虹灯效果" },
+            "LED发光": { en: "LED glow", cn: "LED发光" },
+            "魔法发光": { en: "magic glow", cn: "魔法发光" },
+            "能量发光": { en: "energy glow", cn: "能量发光" },
+            "眼睛发光": { en: "glowing eyes", cn: "眼睛发光" },
+            "边缘发光": { en: "edge glow", cn: "边缘发光" },
+            "柔和发光": { en: "soft glow", cn: "柔和发光" }
+        },
+        "表面效果": {
+            "高反射": { en: "highly reflective", cn: "高反射" },
+            "半透明": { en: "semi-transparent", cn: "半透明" },
+            "全透明": { en: "transparent", cn: "全透明" },
+            "磨砂玻璃": { en: "frosted glass", cn: "磨砂玻璃" },
+            "彩虹镀膜": { en: "iridescent", cn: "彩虹镀膜" },
+            "变色龙效果": { en: "chameleon effect", cn: "变色龙效果" },
+            "油膜效果": { en: "oil film effect", cn: "油膜效果" },
+            "水彩晕染": { en: "watercolor bleed", cn: "水彩晕染" }
+        },
+        "氛围修饰": {
+            "复古颗粒": { en: "vintage grain", cn: "复古颗粒" },
+            "噪点效果": { en: "noise effect", cn: "噪点效果" },
+            "胶片质感": { en: "film grain", cn: "胶片质感" },
+            "镜头光晕": { en: "lens flare", cn: "镜头光晕" },
+            "色差效果": { en: "chromatic aberration", cn: "色差效果" },
+            "暗角效果": { en: "vignette", cn: "暗角效果" },
+            "渐晕效果": { en: "vignetting", cn: "渐晕效果" },
+            "镜头畸变": { en: "lens distortion", cn: "镜头畸变" },
+            "模糊效果": { en: "blur effect", cn: "模糊效果" },
+            "锐化效果": { en: "sharpening", cn: "锐化效果" }
+        }
+    },
+    "📷 摄影参数": {
+        "光圈设置": {
+            "F1.2大光圈": { en: "f/1.2 aperture", cn: "F1.2大光圈" },
+            "F1.4": { en: "f/1.4 aperture", cn: "F1.4" },
+            "F1.8": { en: "f/1.8 aperture", cn: "F1.8" },
+            "F2.0": { en: "f/2.0 aperture", cn: "F2.0" },
+            "F2.8": { en: "f/2.8 aperture", cn: "F2.8" },
+            "F4.0": { en: "f/4.0 aperture", cn: "F4.0" },
+            "F5.6": { en: "f/5.6 aperture", cn: "F5.6" },
+            "F8.0": { en: "f/8.0 aperture", cn: "F8.0" },
+            "F11": { en: "f/11 aperture", cn: "F11" },
+            "F16": { en: "f/16 aperture", cn: "F16" },
+            "F22": { en: "f/22 aperture", cn: "F22" }
+        },
+        "快门速度": {
+            "1/8000秒": { en: "1/8000 shutter speed", cn: "1/8000秒" },
+            "1/4000秒": { en: "1/4000 shutter speed", cn: "1/4000秒" },
+            "1/2000秒": { en: "1/2000 shutter speed", cn: "1/2000秒" },
+            "1/1000秒": { en: "1/1000 shutter speed", cn: "1/1000秒" },
+            "1/500秒": { en: "1/500 shutter speed", cn: "1/500秒" },
+            "1/250秒": { en: "1/250 shutter speed", cn: "1/250秒" },
+            "1/125秒": { en: "1/125 shutter speed", cn: "1/125秒" },
+            "1/60秒": { en: "1/60 shutter speed", cn: "1/60秒" },
+            "1/30秒": { en: "1/30 shutter speed", cn: "1/30秒" },
+            "1/15秒": { en: "1/15 shutter speed", cn: "1/15秒" },
+            "1秒长曝光": { en: "1 second long exposure", cn: "1秒长曝光" },
+            "30秒长曝光": { en: "30 second long exposure", cn: "30秒长曝光" }
+        },
+        "ISO感光度": {
+            "ISO 100": { en: "ISO 100", cn: "ISO 100" },
+            "ISO 200": { en: "ISO 200", cn: "ISO 200" },
+            "ISO 400": { en: "ISO 400", cn: "ISO 400" },
+            "ISO 800": { en: "ISO 800", cn: "ISO 800" },
+            "ISO 1600": { en: "ISO 1600", cn: "ISO 1600" },
+            "ISO 3200": { en: "ISO 3200", cn: "ISO 3200" },
+            "ISO 6400": { en: "ISO 6400", cn: "ISO 6400" },
+            "ISO 12800": { en: "ISO 12800", cn: "ISO 12800" }
+        },
+        "焦距": {
+            "14mm超广角": { en: "14mm ultra wide", cn: "14mm超广角" },
+            "24mm广角": { en: "24mm wide angle", cn: "24mm广角" },
+            "35mm": { en: "35mm focal length", cn: "35mm" },
+            "50mm标准": { en: "50mm standard", cn: "50mm标准" },
+            "85mm人像": { en: "85mm portrait", cn: "85mm人像" },
+            "100mm微距": { en: "100mm macro", cn: "100mm微距" },
+            "135mm": { en: "135mm telephoto", cn: "135mm" },
+            "200mm长焦": { en: "200mm telephoto", cn: "200mm长焦" },
+            "400mm超长焦": { en: "400mm super telephoto", cn: "400mm超长焦" },
+            "600mm": { en: "600mm super telephoto", cn: "600mm" }
+        },
+        "相机类型": {
+            "单反相机": { en: "DSLR camera", cn: "单反相机" },
+            "无反相机": { en: "mirrorless camera", cn: "无反相机" },
+            "中画幅相机": { en: "medium format camera", cn: "中画幅相机" },
+            "大画幅相机": { en: "large format camera", cn: "大画幅相机" },
+            "胶片相机": { en: "film camera", cn: "胶片相机" },
+            "拍立得": { en: "Polaroid camera", cn: "拍立得" },
+            "手机摄影": { en: "smartphone photography", cn: "手机摄影" },
+            "无人机航拍": { en: "drone photography", cn: "无人机航拍" },
+            "GoPro运动相机": { en: "GoPro action camera", cn: "GoPro运动相机" },
+            "全景相机": { en: "360 camera", cn: "全景相机" }
+        },
+        "镜头品牌": {
+            "蔡司镜头": { en: "Zeiss lens", cn: "蔡司镜头" },
+            "徕卡镜头": { en: "Leica lens", cn: "徕卡镜头" },
+            "佳能镜头": { en: "Canon lens", cn: "佳能镜头" },
+            "尼康镜头": { en: "Nikon lens", cn: "尼康镜头" },
+            "索尼镜头": { en: "Sony lens", cn: "索尼镜头" },
+            "适马镜头": { en: "Sigma lens", cn: "适马镜头" },
+            "腾龙镜头": { en: "Tamron lens", cn: "腾龙镜头" },
+            "老镜头": { en: "vintage lens", cn: "老镜头" }
+        }
+    },
+    "🎬 电影风格": {
+        "电影类型": {
+            "好莱坞大片": { en: "Hollywood blockbuster style", cn: "好莱坞大片" },
+            "独立电影": { en: "indie film style", cn: "独立电影" },
+            "文艺片": { en: "art house film", cn: "文艺片" },
+            "动作片": { en: "action movie", cn: "动作片" },
+            "科幻片": { en: "sci-fi movie", cn: "科幻片" },
+            "恐怖片": { en: "horror movie", cn: "恐怖片" },
+            "爱情片": { en: "romance movie", cn: "爱情片" },
+            "纪录片": { en: "documentary style", cn: "纪录片" },
+            "黑色电影": { en: "film noir", cn: "黑色电影" },
+            "西部片": { en: "western film", cn: "西部片" }
+        },
+        "电影画质": {
+            "电影质感": { en: "cinematic quality", cn: "电影质感" },
+            "35mm胶片": { en: "35mm film", cn: "35mm胶片" },
+            "70mm IMAX": { en: "70mm IMAX", cn: "70mm IMAX" },
+            "宽银幕": { en: "anamorphic widescreen", cn: "宽银幕" },
+            "变形宽银幕": { en: "anamorphic lens", cn: "变形宽银幕" },
+            "电影色彩分级": { en: "cinematic color grading", cn: "电影色彩分级" },
+            "电影调色": { en: "cinematic color correction", cn: "电影调色" },
+            "HDR电影": { en: "HDR cinematic", cn: "HDR电影" }
+        },
+        "电影效果": {
+            "电影光效": { en: "cinematic lighting", cn: "电影光效" },
+            "电影构图": { en: "cinematic composition", cn: "电影构图" },
+            "电影镜头": { en: "cinematic shot", cn: "电影镜头" },
+            "电影场景": { en: "cinematic scene", cn: "电影场景" },
+            "电影氛围": { en: "cinematic atmosphere", cn: "电影氛围" },
+            "电影感": { en: "cinematic feel", cn: "电影感" },
+            "大片感": { en: "blockbuster feel", cn: "大片感" },
+            "史诗感": { en: "epic feel", cn: "史诗感" }
+        },
+        "知名导演风格": {
+            "诺兰风格": { en: "Christopher Nolan style", cn: "诺兰风格" },
+            "斯皮尔伯格风格": { en: "Steven Spielberg style", cn: "斯皮尔伯格风格" },
+            "库布里克风格": { en: "Stanley Kubrick style", cn: "库布里克风格" },
+            "王家卫风格": { en: "Wong Kar-wai style", cn: "王家卫风格" },
+            "昆汀风格": { en: "Quentin Tarantino style", cn: "昆汀风格" },
+            "大卫芬奇风格": { en: "David Fincher style", cn: "大卫芬奇风格" },
+            "韦斯安德森风格": { en: "Wes Anderson style", cn: "韦斯安德森风格" },
+            "宫崎骏动画风格": { en: "Hayao Miyazaki animation style", cn: "宫崎骏动画风格" },
+            "今敏动画风格": { en: "Satoshi Kon animation style", cn: "今敏动画风格" }
+        }
+    },
+    "🎮 游戏风格": {
+        "游戏类型": {
+            "RPG游戏": { en: "RPG game style", cn: "RPG游戏" },
+            "FPS游戏": { en: "FPS game style", cn: "FPS游戏" },
+            "MOBA游戏": { en: "MOBA game style", cn: "MOBA游戏" },
+            "格斗游戏": { en: "fighting game style", cn: "格斗游戏" },
+            "赛车游戏": { en: "racing game style", cn: "赛车游戏" },
+            "恐怖游戏": { en: "horror game style", cn: "恐怖游戏" },
+            "解谜游戏": { en: "puzzle game style", cn: "解谜游戏" },
+            "沙盒游戏": { en: "sandbox game style", cn: "沙盒游戏" },
+            "卡牌游戏": { en: "card game style", cn: "卡牌游戏" },
+            "塔防游戏": { en: "tower defense game style", cn: "塔防游戏" }
+        },
+        "游戏画面": {
+            "虚幻引擎5": { en: "Unreal Engine 5", cn: "虚幻引擎5" },
+            "Unity引擎": { en: "Unity engine", cn: "Unity引擎" },
+            "次世代画质": { en: "next-gen graphics", cn: "次世代画质" },
+            "光追效果": { en: "ray tracing", cn: "光追效果" },
+            "4K游戏画面": { en: "4K game graphics", cn: "4K游戏画面" },
+            "120帧流畅": { en: "120fps smooth", cn: "120帧流畅" },
+            "HDR游戏": { en: "HDR gaming", cn: "HDR游戏" },
+            "游戏截图": { en: "game screenshot", cn: "游戏截图" }
+        },
+        "知名游戏风格": {
+            "最终幻想风格": { en: "Final Fantasy style", cn: "最终幻想风格" },
+            "塞尔达风格": { en: "Zelda style", cn: "塞尔达风格" },
+            "黑暗之魂风格": { en: "Dark Souls style", cn: "黑暗之魂风格" },
+            "原神风格": { en: "Genshin Impact style", cn: "原神风格" },
+            "赛博朋克2077风格": { en: "Cyberpunk 2077 style", cn: "赛博朋克2077风格" },
+            "怪物猎人风格": { en: "Monster Hunter style", cn: "怪物猎人风格" },
+            "使命召唤风格": { en: "Call of Duty style", cn: "使命召唤风格" },
+            "我的世界风格": { en: "Minecraft style", cn: "我的世界风格" }
+        }
+    },
+    "🔮 特殊效果": {
+        "魔法效果": {
+            "火焰魔法": { en: "fire magic", cn: "火焰魔法" },
+            "冰霜魔法": { en: "ice magic", cn: "冰霜魔法" },
+            "雷电魔法": { en: "lightning magic", cn: "雷电魔法" },
+            "治愈魔法": { en: "healing magic", cn: "治愈魔法" },
+            "暗影魔法": { en: "shadow magic", cn: "暗影魔法" },
+            "自然魔法": { en: "nature magic", cn: "自然魔法" },
+            "时空魔法": { en: "time-space magic", cn: "时空魔法" },
+            "召唤魔法": { en: "summoning magic", cn: "召唤魔法" },
+            "防护魔法": { en: "protection magic", cn: "防护魔法" },
+            "诅咒": { en: "curse", cn: "诅咒" },
+            "附魔": { en: "enchantment", cn: "附魔" },
+            "魔法阵": { en: "magic circle", cn: "魔法阵" },
+            "魔法书": { en: "magic book", cn: "魔法书" },
+            "魔法杖": { en: "magic wand", cn: "魔法杖" },
+            "水晶球": { en: "crystal ball", cn: "水晶球" }
+        },
+        "超能力": {
+            "飞行": { en: "flying", cn: "飞行" },
+            "隐身": { en: "invisibility", cn: "隐身" },
+            "念力": { en: "telekinesis", cn: "念力" },
+            "传送": { en: "teleportation", cn: "传送" },
+            "分身": { en: "cloning", cn: "分身" },
+            "加速": { en: "super speed", cn: "加速" },
+            "力量增强": { en: "super strength", cn: "力量增强" },
+            "预知未来": { en: "precognition", cn: "预知未来" },
+            "心灵感应": { en: "telepathy", cn: "心灵感应" },
+            "元素控制": { en: "elemental control", cn: "元素控制" }
+        },
+        "科幻效果": {
+            "激光": { en: "laser", cn: "激光" },
+            "能量护盾": { en: "energy shield", cn: "能量护盾" },
+            "全息投影": { en: "hologram", cn: "全息投影" },
+            "反重力": { en: "anti-gravity", cn: "反重力" },
+            "时间停止": { en: "time freeze", cn: "时间停止" },
+            "空间扭曲": { en: "space distortion", cn: "空间扭曲" },
+            "量子效应": { en: "quantum effect", cn: "量子效应" },
+            "纳米机器人": { en: "nanobots", cn: "纳米机器人" },
+            "基因改造": { en: "genetic modification", cn: "基因改造" },
+            "机械改造": { en: "cybernetic enhancement", cn: "机械改造" }
+        },
+        "自然现象": {
+            "龙卷风": { en: "tornado", cn: "龙卷风" },
+            "海啸": { en: "tsunami", cn: "海啸" },
+            "地震": { en: "earthquake", cn: "地震" },
+            "火山喷发": { en: "volcanic eruption", cn: "火山喷发" },
+            "极光": { en: "aurora", cn: "极光" },
+            "流星": { en: "meteor", cn: "流星" },
+            "日食": { en: "solar eclipse", cn: "日食" },
+            "月食": { en: "lunar eclipse", cn: "月食" },
+            "极光": { en: "aurora borealis", cn: "极光" },
+            "彩虹": { en: "rainbow", cn: "彩虹" }
+        }
+    }
+};
+
+let selectedPrompts = [];
+let copyMode = 'cn';
+let moduleSelectedCount = {};
+let scaffoldData = []; // 存储脚手架模板数据
+
+// 初始化脚手架数据
+function initScaffoldData() {
+    scaffoldData = [];
+    const scaffoldCategories = promptData["🚀 快捷脚手架"];
+    for (const [catName, prompts] of Object.entries(scaffoldCategories)) {
+        for (const [name, data] of Object.entries(prompts)) {
+            scaffoldData.push({ name, cn: data.cn, en: data.en, category: catName });
+        }
+    }
+    console.log('Scaffold data initialized:', scaffoldData.length, 'items'); // 调试日志
+}
+
+let selectedScaffoldIndex = -1; // 当前选中的脚手架索引
+
+function applyScaffoldByIndex(index) {
+    if (index >= 0 && index < scaffoldData.length) {
+        const item = scaffoldData[index];
+        
+        // Toggle效果：如果点击已选中的，则取消选中
+        if (selectedScaffoldIndex === index) {
+            // 取消选中
+            document.querySelectorAll(`.scaffold-card[data-idx="${index}"]`).forEach(card => {
+                card.classList.remove('selected');
+            });
+            selectedScaffoldIndex = -1;
+            
+            // 清空提示词
+            selectedPrompts = [];
+            
+            // 更新徽章
+            const tabId = 'tab-🚀-快捷脚手架';
+            moduleSelectedCount[tabId] = 0;
+            updateModuleBadge(tabId);
+            
+            updateResult();
+            showToast('已取消选择');
+            return;
+        }
+        
+        // 选中新模板
+        document.querySelectorAll('.scaffold-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelectorAll(`.scaffold-card[data-idx="${index}"]`).forEach(card => {
+            card.classList.add('selected');
+        });
+        selectedScaffoldIndex = index;
+        
+        // 更新徽章
+        const tabId = 'tab-🚀-快捷脚手架';
+        moduleSelectedCount[tabId] = 1;
+        updateModuleBadge(tabId);
+        
+        applyScaffold(item.en, item.cn);
+    }
+}
+
+function renderModules() {
+    const container = document.getElementById('modulesContainer');
+    container.innerHTML = '';
+    moduleSelectedCount = {};
+    initScaffoldData(); // 初始化脚手架数据
+    
+    // 预览图URL映射 - 每个模板都有独特的预览图
+    const previewImages = {
+        "清新日系": "https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&h=200&fit=crop",
+        "欧美时尚": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&h=200&fit=crop",
+        "复古胶片": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&h=200&fit=crop",
+        "街头抓拍": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=400&h=200&fit=crop",
+        "梦幻人像": "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=200&fit=crop",
+        "黄金时刻": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=200&fit=crop",
+        "极简风光": "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=400&h=200&fit=crop",
+        "壮丽山川": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=200&fit=crop",
+        "星空银河": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=200&fit=crop",
+        "海景日落": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=200&fit=crop",
+        "极简产品": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=200&fit=crop",
+        "美食摄影": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=200&fit=crop",
+        "科技产品": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=200&fit=crop",
+        "美妆护肤": "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=200&fit=crop",
+        "珠宝首饰": "https://images.unsplash.com/photo-1515562141589-67f0d569b986?w=400&h=200&fit=crop",
+        "奇幻世界": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=200&fit=crop",
+        "科幻场景": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=200&fit=crop",
+        "暗黑风格": "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=400&h=200&fit=crop",
+        "童话风格": "https://images.unsplash.com/photo-1516450137517-162bfbeb8dba?w=400&h=200&fit=crop",
+        "废土末日": "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=400&h=200&fit=crop",
+        "日系动漫": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&h=200&fit=crop",
+        "韩漫风格": "https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=400&h=200&fit=crop",
+        "厚涂风格": "https://images.unsplash.com/photo-1582201942988-13e60e4556ee?w=400&h=200&fit=crop",
+        "像素风格": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=200&fit=crop",
+        "Q版萌系": "https://images.unsplash.com/photo-1607604276583-1c37d319f8bc?w=400&h=200&fit=crop",
+        "超写实人像": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=200&fit=crop",
+        "电影质感": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&h=200&fit=crop",
+        "商业摄影": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop",
+        "纪实摄影": "https://images.unsplash.com/photo-1494548162494-384bba4ab999?w=400&h=200&fit=crop",
+        "黑白艺术": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=200&fit=crop",
+        "油画风格": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400&h=200&fit=crop",
+        "水彩风格": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=200&fit=crop",
+        "素描风格": "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=200&fit=crop",
+        "波普艺术": "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=400&h=200&fit=crop",
+        "浮世绘风格": "https://images.unsplash.com/photo-1528164344705-47542687000d?w=400&h=200&fit=crop"
+    };
+    
+    // 创建tab导航
+    const tabsNav = document.createElement('div');
+    tabsNav.className = 'tabs-nav';
+    
+    // 创建tab内容容器
+    const tabsContent = document.createElement('div');
+    tabsContent.className = 'tab-content';
+    
+    let isFirstTab = true;
+    
+    // 定义新的排序顺序
+    const orderedKeys = [
+        "🚀 快捷脚手架",
+        "📷 画面质量",
+        "💡 光影效果",
+        "🎭 艺术大师",
+        "🌍 场景主题",
+        "👤 人物特征",
+        "👗 服装服饰",
+        "🎨 画面风格",
+        "✨ 艺术家与媒介",
+        "🎨 色彩氛围",
+        "📐 构图视角",
+        "🌟 特效氛围",
+        "🖌️ 细节修饰",
+        "📷 摄影参数",
+        "🎬 电影风格",
+        "🎮 游戏风格",
+        "🔮 特殊效果"
+    ];
+    
+    // 按指定顺序获取模块
+    const moduleEntries = orderedKeys
+        .filter(key => promptData[key])
+        .map(key => [key, promptData[key]]);
+    
+    // 首先创建"全部"Tab
+    const allTabBtn = document.createElement('button');
+    allTabBtn.className = 'tab-btn active';
+    allTabBtn.dataset.tab = 'tab-all';
+    allTabBtn.innerHTML = `
+        <span class="tab-btn-icon">📋</span>
+        <span>全部</span>
+        <span class="tab-btn-count">${Object.values(promptData).reduce((sum, categories) => sum + Object.values(categories).reduce((s, cat) => s + Object.keys(cat).length, 0), 0)}</span>
+        <span class="tab-btn-selected" id="tab-all-badge">0</span>
+    `;
+    allTabBtn.onclick = () => switchTab('tab-all');
+    tabsNav.appendChild(allTabBtn);
+    
+    // 创建"全部"Tab面板
+    const allTabPanel = document.createElement('div');
+    allTabPanel.className = 'tab-panel active';
+    allTabPanel.id = 'tab-all';
+    moduleSelectedCount['tab-all'] = 0;
+    
+    let allModulesHTML = `
+        <div class="tab-panel-header">
+            <span class="tab-panel-title">📋 全部提示词</span>
+            <button class="tab-clear-btn" id="tab-all-clear-btn" onclick="clearModulePrompts('tab-all')">🗑️ 清除此模块 <span class="clear-count">0</span></button>
+        </div>
+    `;
+    
+    // 在"全部"Tab中添加所有模块内容
+    for (const [moduleName, categories] of moduleEntries) {
+        const icon = moduleName.split(' ')[0];
+        const title = moduleName.split(' ').slice(1).join(' ');
+        
+        if (moduleName === "🚀 快捷脚手架") {
+            // 脚手架模块 - 单选卡片
+            let scaffoldIndex = 0;
+            for (const [catName, prompts] of Object.entries(categories)) {
+                const cardsHTML = Object.entries(prompts).map(([cn, data]) => {
+                    const idx = scaffoldIndex++;
+                    const tagsPreview = data.cn.split('，').slice(0, 3).map(tag => `<span class="scaffold-tag">${tag}</span>`).join('');
+                    const imageUrl = previewImages[cn] || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
+                    return `<div class="scaffold-card" data-idx="${idx}" data-cn="${cn}" onclick="applyScaffoldByIndex(${idx})">
+                        <img class="scaffold-card-image" src="${imageUrl}" alt="${cn}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'">
+                        <div class="scaffold-card-header">
+                            <span class="scaffold-card-icon">✨</span>
+                            <span class="scaffold-card-title">${cn}</span>
+                        </div>
+                        <div class="scaffold-card-tags">${tagsPreview}</div>
+                        <div class="scaffold-card-footer">👆 点击应用此模板</div>
+                    </div>`;
+                }).join('');
+                
+                allModulesHTML += `
+                    <div class="module all-scaffold-module">
+                        <div class="module-header" onclick="toggleModule(this)">
+                            <span class="module-icon">${icon}</span>
+                            <span class="module-title">${title} - ${catName}</span>
+                            <span class="module-count">${Object.keys(prompts).length}个模板</span>
+                            <span class="module-arrow">▼</span>
+                        </div>
+                        <div class="module-body">
+                            <div class="scaffold-container">${cardsHTML}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            // 其他模块 - 多选标签
+            for (const [catName, prompts] of Object.entries(categories)) {
+                const tagsHTML = Object.entries(prompts).map(([cn, data]) => 
+                    `<span class="prompt-tag" data-cn="${cn}" data-en="${data.en}" data-module="${moduleName}" onclick="togglePrompt(this, '${cn}', 'tab-all')">${cn}</span>`
+                ).join('');
+                
+                allModulesHTML += `
+                    <div class="module">
+                        <div class="module-header" onclick="toggleModule(this)">
+                            <span class="module-icon">●</span>
+                            <span class="module-title">${catName}</span>
+                            <span class="module-count">${Object.keys(prompts).length}个</span>
+                            <span class="module-arrow">▼</span>
+                        </div>
+                        <div class="module-body">
+                            <div class="tags-container">${tagsHTML}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    allTabPanel.innerHTML = allModulesHTML;
+    tabsContent.appendChild(allTabPanel);
+    
+    isFirstTab = false;
+    
+    // 然后创建其他单独的Tab
+    for (const [moduleName, categories] of moduleEntries) {
+        const icon = moduleName.split(' ')[0];
+        const title = moduleName.split(' ').slice(1).join(' ');
+        const totalTags = Object.values(categories).reduce((sum, cat) => sum + Object.keys(cat).length, 0);
+        const tabId = `tab-${moduleName.replace(/\s+/g, '-')}`;
+        moduleSelectedCount[tabId] = 0;
+        
+        // 创建tab按钮
+        const tabBtn = document.createElement('button');
+        tabBtn.className = `tab-btn ${isFirstTab ? 'active' : ''}`;
+        tabBtn.dataset.tab = tabId;
+        tabBtn.innerHTML = `
+            <span class="tab-btn-icon">${icon}</span>
+            <span>${title}</span>
+            <span class="tab-btn-count">${totalTags}</span>
+            <span class="tab-btn-selected" id="${tabId}-badge">0</span>
+        `;
+        tabBtn.onclick = () => switchTab(tabId);
+        tabsNav.appendChild(tabBtn);
+        
+        // 创建tab面板
+        const tabPanel = document.createElement('div');
+        tabPanel.className = `tab-panel ${isFirstTab ? 'active' : ''}`;
+        tabPanel.id = tabId;
+        
+        // 在面板内添加模块（子分类）
+        let modulesHTML = `
+            <div class="tab-panel-header">
+                <span class="tab-panel-title">${icon} ${title}</span>
+                <button class="tab-clear-btn" id="${tabId}-clear-btn" onclick="clearModulePrompts('${tabId}')">🗑️ 清除此模块 <span class="clear-count">0</span></button>
+            </div>
+        `;
+        
+        // 特殊处理快捷脚手架模块 - 显示为卡片
+        if (moduleName === "🚀 快捷脚手架") {
+            let scaffoldIndex = 0;
+            for (const [catName, prompts] of Object.entries(categories)) {
+                const cardsHTML = Object.entries(prompts).map(([cn, data]) => {
+                    const idx = scaffoldIndex++;
+                    const tagsPreview = data.cn.split('，').slice(0, 4).map(tag => `<span class="scaffold-tag">${tag}</span>`).join('');
+                    const imageUrl = previewImages[cn] || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
+                    return `<div class="scaffold-card" data-idx="${idx}" data-cn="${cn}" onclick="applyScaffoldByIndex(${idx})">
+                        <img class="scaffold-card-image" src="${imageUrl}" alt="${cn}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'">
+                        <div class="scaffold-card-header">
+                            <span class="scaffold-card-icon">✨</span>
+                            <span class="scaffold-card-title">${cn}</span>
+                        </div>
+                        <div class="scaffold-card-tags">${tagsPreview}</div>
+                        <div class="scaffold-card-footer">👆 点击应用此模板</div>
+                    </div>`;
+                }).join('');
+                
+                modulesHTML += `
+                    <div class="module">
+                        <div class="module-header" onclick="toggleModule(this)">
+                            <span class="module-icon">●</span>
+                            <span class="module-title">${catName}</span>
+                            <span class="module-count">${Object.keys(prompts).length}个模板</span>
+                            <span class="module-arrow">▼</span>
+                        </div>
+                        <div class="module-body">
+                            <div class="scaffold-container">${cardsHTML}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            // 其他模块正常显示
+            for (const [catName, prompts] of Object.entries(categories)) {
+                const tagsHTML = Object.entries(prompts).map(([cn, data]) => 
+                    `<span class="prompt-tag" data-cn="${cn}" data-en="${data.en}" onclick="togglePrompt(this, '${cn}', '${tabId}')">${cn}</span>`
+                ).join('');
+                
+                modulesHTML += `
+                    <div class="module">
+                        <div class="module-header" onclick="toggleModule(this)">
+                            <span class="module-icon">●</span>
+                            <span class="module-title">${catName}</span>
+                            <span class="module-count">${Object.keys(prompts).length}个</span>
+                            <span class="module-arrow">▼</span>
+                        </div>
+                        <div class="module-body">
+                            <div class="tags-container">${tagsHTML}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        tabPanel.innerHTML = modulesHTML;
+        tabsContent.appendChild(tabPanel);
+        
+        isFirstTab = false;
+    }
+    
+    container.appendChild(tabsNav);
+    container.appendChild(tabsContent);
+}
+
+function clearModulePrompts(tabId) {
+    // 处理"全部"Tab
+    if (tabId === 'tab-all') {
+        // 清除所有选中的标签
+        document.querySelectorAll('.prompt-tag.selected').forEach(tag => {
+            tag.classList.remove('selected');
+        });
+        // 清除脚手架选中状态
+        document.querySelectorAll('.scaffold-card.selected').forEach(card => {
+            card.classList.remove('selected');
+        });
+        selectedScaffoldIndex = -1;
+        selectedPrompts = [];
+        
+        // 重置所有模块计数
+        Object.keys(moduleSelectedCount).forEach(key => {
+            moduleSelectedCount[key] = 0;
+            updateModuleBadge(key);
+        });
+        
+        updateResult();
+        showToast('已清空所有选择');
+        return;
+    }
+    
+    // 处理快捷脚手架模块
+    if (tabId === 'tab-🚀-快捷脚手架') {
+        const selectedCard = document.querySelector(`#${tabId} .scaffold-card.selected`);
+        if (!selectedCard) {
+            showToast('当前模块没有已选提示词');
+            return;
+        }
+        selectedCard.classList.remove('selected');
+        selectedScaffoldIndex = -1;
+        selectedPrompts = [];
+        moduleSelectedCount[tabId] = 0;
+        updateModuleBadge(tabId);
+        updateResult();
+        showToast('已清除快捷脚手架');
+        return;
+    }
+    
+    // 处理其他模块
+    const moduleTags = document.querySelectorAll(`#${tabId} .prompt-tag.selected`);
+    if (moduleTags.length === 0) {
+        showToast('当前模块没有已选提示词');
+        return;
+    }
+    
+    moduleTags.forEach(tag => {
+        tag.classList.remove('selected');
+        const cn = tag.dataset.cn;
+        selectedPrompts = selectedPrompts.filter(p => p.cn !== cn);
+    });
+    
+    moduleSelectedCount[tabId] = 0;
+    updateModuleBadge(tabId);
+    updateResult();
+    showToast(`已清除此模块的 ${moduleTags.length} 个提示词`);
+}
+
+function switchTab(tabId) {
+    // 更新按钮状态
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+    });
+    
+    // 更新面板状态
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.toggle('active', panel.id === tabId);
+    });
+}
+
+function toggleModule(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.module-arrow');
+    body.classList.toggle('collapsed');
+    arrow.classList.toggle('collapsed');
+}
+
+function togglePrompt(element, cn, tabId) {
+    element.classList.toggle('selected');
+    
+    if (selectedPrompts.find(p => p.cn === cn)) {
+        selectedPrompts = selectedPrompts.filter(p => p.cn !== cn);
+        if (tabId && moduleSelectedCount[tabId]) {
+            moduleSelectedCount[tabId]--;
+        }
+    } else {
+        selectedPrompts.push({
+            cn: cn,
+            en: element.dataset.en
+        });
+        if (tabId) {
+            moduleSelectedCount[tabId] = (moduleSelectedCount[tabId] || 0) + 1;
+        }
+    }
+    
+    if (tabId) {
+        updateModuleBadge(tabId);
+    }
+    updateResult();
+}
+
+function applyScaffold(enText, cnText) {
+    // 清空当前选择的标签
+    document.querySelectorAll('.prompt-tag.selected').forEach(tag => {
+        tag.classList.remove('selected');
+    });
+    selectedPrompts = [];
+    
+    // 重置除快捷脚手架外的模块计数
+    Object.keys(moduleSelectedCount).forEach(key => {
+        if (key !== 'tab-🚀-快捷脚手架') {
+            moduleSelectedCount[key] = 0;
+            updateModuleBadge(key);
+        }
+    });
+    
+    // 解析并添加新的提示词
+    const enTags = enText.split(', ');
+    const cnTags = cnText.split('，');
+    
+    // 使用中文标签
+    cnTags.forEach((cn, index) => {
+        const en = enTags[index] || cnTags[index];
+        selectedPrompts.push({ cn, en });
+    });
+    
+    // 更新结果
+    updateResult();
+    showToast(`已应用模板: ${cnText.split('，')[0]}...`);
+}
+
+function updateModuleBadge(tabId) {
+    const count = moduleSelectedCount[tabId] || 0;
+    
+    // 更新tab按钮上的徽章
+    const badge = document.getElementById(`${tabId}-badge`);
+    if (badge) {
+        badge.textContent = count;
+        badge.classList.toggle('visible', count > 0);
+    }
+    
+    // 更新清除按钮上的数量
+    const clearBtn = document.getElementById(`${tabId}-clear-btn`);
+    if (clearBtn) {
+        const countSpan = clearBtn.querySelector('.clear-count');
+        if (countSpan) {
+            countSpan.textContent = count;
+        }
+        // 根据数量调整按钮样式
+        clearBtn.classList.toggle('has-items', count > 0);
+    }
+}
+
+function updateResult() {
+    const resultArea = document.getElementById('resultArea');
+    const selectedTags = document.getElementById('selectedTags');
+    const resultStats = document.getElementById('resultStats');
+    const customInput = document.getElementById('customInput').value.trim();
+    const negativeInput = document.getElementById('negativeInput').value.trim();
+    const includeNegative = document.getElementById('includeNegative').checked;
+    
+    let allPrompts = [...selectedPrompts];
+    
+    let displayText = '';
+    if (copyMode === 'en') {
+        displayText = allPrompts.map(p => p.en).join(', ');
+    } else if (copyMode === 'cn') {
+        displayText = allPrompts.map(p => p.cn).join(', ');
+    } else {
+        displayText = allPrompts.map(p => `${p.cn} (${p.en})`).join(', ');
+    }
+    
+    if (customInput) {
+        displayText += (displayText ? ', ' : '') + customInput;
+    }
+    
+    if (includeNegative && negativeInput) {
+        displayText += '\n\nNegative prompt: ' + negativeInput;
+    }
+    
+    if (displayText) {
+        resultArea.textContent = displayText;
+    } else {
+        resultArea.innerHTML = '<span class="result-empty">请从左侧选择提示词...</span>';
+    }
+    
+    selectedTags.innerHTML = allPrompts.slice(-20).map(p => `
+        <span class="selected-tag">
+            ${p.cn}
+            <span class="remove" onclick="removeTag('${p.cn}')">×</span>
+        </span>
+    `).join('');
+    
+    resultStats.textContent = `已选择: ${allPrompts.length} 个提示词${customInput ? ' + 自定义' : ''}${includeNegative && negativeInput ? ' + 负面提示词' : ''}`;
+}
+
+function removeTag(cn) {
+    const removedPrompt = selectedPrompts.find(p => p.cn === cn);
+    selectedPrompts = selectedPrompts.filter(p => p.cn !== cn);
+    
+    // 找到对应的tab并更新badge
+    document.querySelectorAll('.prompt-tag').forEach(tag => {
+        if (tag.dataset.cn === cn) {
+            tag.classList.remove('selected');
+            // 查找所属的tab-panel
+            const tabPanel = tag.closest('.tab-panel');
+            if (tabPanel) {
+                const tabId = tabPanel.id;
+                if (moduleSelectedCount[tabId]) {
+                    moduleSelectedCount[tabId]--;
+                    updateModuleBadge(tabId);
+                }
+            }
+        }
+    });
+    
+    // 如果"全部"Tab有此标签，也更新其计数
+    if (moduleSelectedCount['tab-all'] > 0) {
+        moduleSelectedCount['tab-all']--;
+        updateModuleBadge('tab-all');
+    }
+    
+    updateResult();
+}
+
+function setCopyMode(mode) {
+    copyMode = mode;
+    document.querySelectorAll('.copy-mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    updateResult();
+}
+
+function copyPrompt() {
+    const resultArea = document.getElementById('resultArea');
+    const textToCopy = resultArea.textContent;
+    
+    if (!textToCopy || textToCopy.includes('请从左侧选择提示词')) {
+        showToast('请先选择提示词！');
+        return;
+    }
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast('已复制到剪贴板!');
+    }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('已复制到剪贴板!');
+    });
+}
+
+function clearAll() {
+    selectedPrompts = [];
+    document.querySelectorAll('.prompt-tag.selected').forEach(tag => {
+        tag.classList.remove('selected');
+    });
+    
+    // 清除脚手架选中状态
+    document.querySelectorAll('.scaffold-card.selected').forEach(card => {
+        card.classList.remove('selected');
+    });
+    selectedScaffoldIndex = -1;
+    
+    // 重置所有模块的badge
+    Object.keys(moduleSelectedCount).forEach(tabId => {
+        moduleSelectedCount[tabId] = 0;
+        updateModuleBadge(tabId);
+    });
+    
+    document.getElementById('customInput').value = '';
+    document.getElementById('negativeInput').value = '';
+    document.getElementById('includeNegative').checked = false;
+    updateResult();
+    showToast('已清空所有选择');
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function filterPrompts() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const hasSearch = searchInput.length > 0;
+    
+    // 搜索普通提示词标签
+    document.querySelectorAll('.prompt-tag').forEach(tag => {
+        const cn = tag.dataset.cn.toLowerCase();
+        const en = tag.dataset.en.toLowerCase();
+        const match = cn.includes(searchInput) || en.includes(searchInput);
+        tag.classList.toggle('hidden', !match);
+    });
+    
+    // 搜索脚手架卡片
+    document.querySelectorAll('.scaffold-card').forEach(card => {
+        const title = card.querySelector('.scaffold-card-title');
+        const tags = card.querySelectorAll('.scaffold-tag');
+        const img = card.querySelector('.scaffold-card-image');
+        let cardText = title ? title.textContent.toLowerCase() : '';
+        if (img) cardText += ' ' + (img.alt || '').toLowerCase();
+        tags.forEach(tag => {
+            cardText += ' ' + tag.textContent.toLowerCase();
+        });
+        const match = cardText.includes(searchInput);
+        card.classList.toggle('hidden', !match);
+    });
+    
+    // 更新模块显示状态
+    document.querySelectorAll('.module').forEach(module => {
+        const visibleTags = module.querySelectorAll('.prompt-tag:not(.hidden)');
+        const visibleCards = module.querySelectorAll('.scaffold-card:not(.hidden)');
+        module.style.display = (visibleTags.length > 0 || visibleCards.length > 0) ? '' : 'none';
+    });
+    
+    // 更新tab按钮状态 - 如果搜索框有内容，显示所有tab
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.style.display = hasSearch ? 'flex' : '';
+    });
+    
+    // 如果搜索为空，恢复所有模块的显示
+    if (!hasSearch) {
+        document.querySelectorAll('.module').forEach(module => {
+            module.style.display = '';
+        });
+    }
+}
+
+renderModules();
+document.getElementById('searchInput').addEventListener('input', filterPrompts);
+document.getElementById('customInput').addEventListener('input', updateResult);
+document.getElementById('negativeInput').addEventListener('input', updateResult);
+document.getElementById('includeNegative').addEventListener('change', updateResult);
+</script>
+</body>
+</html>

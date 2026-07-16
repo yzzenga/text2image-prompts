@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文生图提示词工坊</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .modules-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .module {
+            margin-bottom: 25px;
+        }
+        
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .module-icon {
+            font-size: 1.5em;
+        }
+        
+        .module-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #00d2ff;
+        }
+        
+        .module-toggle {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        
+        .module-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .module-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: max-height 0.3s, opacity 0.3s;
+            overflow: hidden;
+        }
+        
+        .module-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        .prompt-tag {
+            padding: 8px 16px;
+            background: rgba(0,210,255,0.1);
+            border: 1px solid rgba(0,210,255,0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+            user-select: none;
+        }
+        
+        .prompt-tag:hover {
+            background: rgba(0,210,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .prompt-tag.selected {
+            background: rgba(0,210,255,0.4);
+            border-color: #00d2ff;
+            box-shadow: 0 0 10px rgba(0,210,255,0.5);
+        }
+        
+        .result-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #00d2ff;
+        }
+        
+        .result-area {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .result-empty {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,210,255,0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .selected-count {
+            text-align: center;
+            margin-top: 15px;
+            color: #888;
+        }
+        
+        .custom-prompt {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .custom-prompt label {
+            display: block;
+            margin-bottom: 8px;
+            color: #888;
+        }
+        
+        .custom-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.95em;
+            resize: vertical;
+        }
+        
+        .custom-input:focus {
+            outline: none;
+            border-color: #00d2ff;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            color: #e0e0e0;
+            font-size: 1em;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #00d2ff;
+        }
+        
+        .search-input::placeholder {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 文生图提示词工坊</h1>
+            <p class="subtitle">选择模块中的提示词，自动生成并复制使用</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="modules-panel">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="🔍 搜索提示词..." id="searchInput">
+                </div>
+                
+                <div id="modulesContainer"></div>
+            </div>
+            
+            <div class="result-panel">
+                <div class="result-title">📝 生成的提示词</div>
+                <div class="result-area" id="resultArea">
+                    <span class="result-empty">请从左侧选择提示词...</span>
+                </div>
+                <div class="selected-count" id="selectedCount">已选择: 0 个提示词</div>
+                <div class="result-actions">
+                    <button class="btn btn-primary" onclick="copyPrompt()">📋 复制</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">🗑️ 清空</button>
+                </div>
+                <div class="custom-prompt">
+                    <label>自定义提示词（可选，将添加到末尾）</label>
+                    <textarea class="custom-input" id="customInput" rows="3" placeholder="输入自定义提示词..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">已复制到剪贴板!</div>
+    
+    <script>
+        const promptData = {
+            "🎨 画面风格": {
+                "扁平插画": "flat illustration",
+                "像素风格": "pixel art",
+                "赛博朋克": "cyberpunk",
+                "蒸汽波": "vaporwave",
+                "波普艺术": "pop art",
+                "超现实主义": "surrealism",
+                "极简主义": "minimalism",
+                "装饰艺术": "art deco",
+                "新艺术运动": "art nouveau",
+                "水墨风格": "ink wash painting",
+                "油画风格": "oil painting",
+                "水彩风格": "watercolor",
+                "素描风格": "pencil sketch",
+                "3D渲染": "3D render",
+                "等距视角": "isometric view",
+                "低多边形": "low poly",
+                "玻璃拟态": "glassmorphism",
+                "霓虹风格": "neon style",
+                "故障艺术": "glitch art",
+                "涂鸦艺术": "graffiti art"
+            },
+            "📷 画面质量": {
+                "超高清": "ultra HD",
+                "8K分辨率": "8K resolution",
+                "高细节": "highly detailed",
+                "精细画质": "finely detailed",
+                "专业摄影": "professional photography",
+                "电影质感": "cinematic quality",
+                "工作室品质": "studio quality",
+                "杂志封面": "magazine cover",
+                "获奖作品": "award winning",
+                "最佳质量": "best quality",
+                "超精细": "extra detailed",
+                "高分辨率": "high resolution",
+                "清晰锐利": "sharp focus",
+                "HDR效果": "HDR",
+                "RAW格式": "RAW photo"
+            },
+            "💡 光影效果": {
+                "自然光": "natural lighting",
+                "柔和光线": "soft lighting",
+                "戏剧性灯光": "dramatic lighting",
+                "逆光效果": "backlighting",
+                "侧光": "side lighting",
+                "顶光": "top lighting",
+                "黄金时刻": "golden hour",
+                "蓝色时刻": "blue hour",
+                "霓虹灯光": "neon lights",
+                "环境光": "ambient lighting",
+                "工作室灯光": "studio lighting",
+                "聚光灯": "spotlight",
+                "伦勃朗光": "Rembrandt lighting",
+                "体积光": "volumetric lighting",
+                "全局光照": "global illumination"
+            },
+            "🎭 艺术大师": {
+                "宫崎骏风格": "Studio Ghibli style",
+                "新海诚风格": "Makoto Shinkai style",
+                "达利风格": "Salvador Dali style",
+                "梵高风格": "Van Gogh style",
+                "毕加索风格": "Picasso style",
+                "莫奈风格": "Monet style",
+                "安迪沃霍尔风格": "Andy Warhol style",
+                "艾伦·李风格": "Alan Lee style",
+                "约翰·豪风格": "John Howe style",
+                "吉格尔风格": "H.R. Giger style"
+            },
+            "🌍 场景主题": {
+                "未来城市": "futuristic cityscape",
+                "古老城堡": "ancient castle",
+                "神秘森林": "enchanted forest",
+                "海底世界": "underwater world",
+                "太空站": "space station",
+                "赛博朋克街道": "cyberpunk street",
+                "日式庭院": "Japanese garden",
+                "北欧风景": "Nordic landscape",
+                "热带雨林": "tropical rainforest",
+                "沙漠绿洲": "desert oasis",
+                "雪山之巅": "snow mountain peak",
+                "田园风光": "pastoral scenery",
+                "废土末日": "post-apocalyptic wasteland",
+                "浮空岛屿": "floating island",
+                "地下洞穴": "underground cave"
+            },
+            "👤 人物特征": {
+                "动漫少女": "anime girl",
+                "动漫少年": "anime boy",
+                "科幻战士": "sci-fi warrior",
+                "魔法师": "mage",
+                "精灵": "elf",
+                "机械少女": "mecha girl",
+                "赛博朋克人物": "cyberpunk character",
+                "维多利亚贵族": "Victorian noble",
+                "古风美人": "traditional Chinese beauty",
+                "哥特萝莉": "Gothic lolita",
+                "机械朋克": "steampunk character",
+                "天使": "angel",
+                "恶魔": "demon",
+                "武士": "samurai",
+                "女巫": "witch"
+            },
+            "🎨 色彩氛围": {
+                "暖色调": "warm color palette",
+                "冷色调": "cool color palette",
+                "霓虹色彩": "neon colors",
+                "莫兰迪色": "Morandi colors",
+                "高饱和度": "high saturation",
+                "低饱和度": "low saturation",
+                "单色风格": "monochrome",
+                "互补色": "complementary colors",
+                "粉彩风格": "pastel colors",
+                "金属光泽": "metallic colors",
+                "渐变效果": "gradient colors",
+                "黑白风格": "black and white"
+            },
+            "📐 构图视角": {
+                "正面视角": "front view",
+                "侧面视角": "side view",
+                "俯视视角": "top view",
+                "仰视视角": "low angle view",
+                "广角镜头": "wide angle lens",
+                "微距摄影": "macro photography",
+                "特写镜头": "close-up shot",
+                "全景构图": "panoramic composition",
+                "对称构图": "symmetrical composition",
+                "三分法构图": "rule of thirds",
+                "黄金比例": "golden ratio",
+                "景深效果": "depth of field"
+            },
+            "✨ 特效氛围": {
+                "粒子特效": "particle effects",
+                "光晕效果": "lens flare",
+                "模糊背景": "bokeh background",
+                "动态模糊": "motion blur",
+                "雨雪效果": "rain and snow",
+                "烟雾缭绕": "mist and fog",
+                "星空背景": "starry sky",
+                "极光效果": "aurora borealis",
+                "火焰效果": "fire effects",
+                "水波纹": "water ripples",
+                "彩虹": "rainbow",
+                "闪电": "lightning"
+            },
+            "🖌️ 细节修饰": {
+                "精细纹理": "intricate textures",
+                "高光泽": "high gloss matte",
+                "磨砂质感": "frosted texture",
+                "透明材质": "transparent material",
+                "金属质感": "metallic texture",
+                "木纹质感": "wooden texture",
+                "大理石纹理": "marble texture",
+                "织物纹理": "fabric texture",
+                "皮肤质感": "skin texture",
+                "发光效果": "glowing effect",
+                "反射效果": "reflection",
+                "阴影效果": "shadow"
+            }
+        };
+        
+        let selectedPrompts = [];
+        
+        function renderModules() {
+            const container = document.getElementById('modulesContainer');
+            container.innerHTML = '';
+            
+            for (const [moduleName, prompts] of Object.entries(promptData)) {
+                const module = document.createElement('div');
+                module.className = 'module';
+                module.innerHTML = `
+                    <div class="module-header" onclick="toggleModule(this)">
+                        <span class="module-icon">${moduleName.split(' ')[0]}</span>
+                        <span class="module-title">${moduleName.split(' ').slice(1).join(' ')}</span>
+                        <span class="module-toggle">▼</span>
+                    </div>
+                    <div class="module-content" id="content-${moduleName}">
+                        ${Object.entries(prompts).map(([cn, en]) => 
+                            `<span class="prompt-tag" data-prompt="${en}" onclick="togglePrompt(this, '${en}')">${cn}</span>`
+                        ).join('')}
+                    </div>
+                `;
+                container.appendChild(module);
+            }
+        }
+        
+        function toggleModule(header) {
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.module-toggle');
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+        
+        function togglePrompt(element, prompt) {
+            element.classList.toggle('selected');
+            
+            if (selectedPrompts.includes(prompt)) {
+                selectedPrompts = selectedPrompts.filter(p => p !== prompt);
+            } else {
+                selectedPrompts.push(prompt);
+            }
+            
+            updateResult();
+        }
+        
+        function updateResult() {
+            const resultArea = document.getElementById('resultArea');
+            const selectedCount = document.getElementById('selectedCount');
+            const customInput = document.getElementById('customInput').value.trim();
+            
+            let allPrompts = [...selectedPrompts];
+            if (customInput) {
+                allPrompts.push(customInput);
+            }
+            
+            if (allPrompts.length === 0) {
+                resultArea.innerHTML = '<span class="result-empty">请从左侧选择提示词...</span>';
+            } else {
+                resultArea.textContent = allPrompts.join(', ');
+            }
+            
+            selectedCount.textContent = `已选择: ${selectedPrompts.length} 个提示词${customInput ? ' + 自定义' : ''}`;
+        }
+        
+        function copyPrompt() {
+            const resultArea = document.getElementById('resultArea');
+            const customInput = document.getElementById('customInput').value.trim();
+            
+            let allPrompts = [...selectedPrompts];
+            if (customInput) {
+                allPrompts.push(customInput);
+            }
+            
+            if (allPrompts.length === 0) {
+                showToast('请先选择提示词！');
+                return;
+            }
+            
+            const textToCopy = allPrompts.join(', ');
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast('已复制到剪贴板!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('已复制到剪贴板!');
+            });
+        }
+        
+        function clearAll() {
+            selectedPrompts = [];
+            document.querySelectorAll('.prompt-tag.selected').forEach(tag => {
+                tag.classList.remove('selected');
+            });
+            document.getElementById('customInput').value = '';
+            updateResult();
+            showToast('已清空所有选择');
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+        
+        function filterPrompts() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const allTags = document.querySelectorAll('.prompt-tag');
+            
+            allTags.forEach(tag => {
+                const text = tag.textContent.toLowerCase();
+                const prompt = tag.dataset.prompt.toLowerCase();
+                const match = text.includes(searchInput) || prompt.includes(searchInput);
+                tag.style.display = match ? '' : 'none';
+            });
+        }
+        
+        // Initialize
+        renderModules();
+        document.getElementById('searchInput').addEventListener('input', filterPrompts);
+        document.getElementById('customInput').addEventListener('input', updateResult);
+    </script>
+</body>
+</html>
