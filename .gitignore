@@ -1,0 +1,5 @@
+# 自定义模板数据（用户本地保存的模板，不提交到仓库）
+prompt-data-self.yaml
+
+# Playwright 测试输出
+.playwright-mcp/

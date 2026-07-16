@@ -15,7 +15,9 @@
 ### Pro 版（prompt-workshop.html）
 
 - 17 个 Tab 模块，800+ 精细提示词标签
-- **快捷脚手架**：30 个预制场景模板（含 Unsplash 预览图），一键应用完整场景描述
+- **快捷脚手架**：30+ 预制场景模板（含 Unsplash 预览图），一键应用完整场景描述
+- **保存自定义模板**：可将当前组合的提示词保存为模板，含名称、描述、可选预览图
+- **自定义模板管理**：模板置顶显示，鼠标悬停可见删除按钮，二次确认后持久化删除
 - 三级分类组织：Tab → 子分类 → 标签项
 - **三种复制模式**：仅英文 / 仅中文 / 中英双语
 - **负面提示词**支持：开关切换 + 自定义输入
@@ -49,7 +51,8 @@
 ## 技术栈
 
 - **纯原生** HTML / CSS / JavaScript，零依赖、无构建步骤
-- 数据存储：YAML 配置文件（`prompt-data.yaml`）
+- 数据存储：YAML 配置文件（`prompt-data.yaml` + `prompt-data-self.yaml`）
+- 自定义模板通过 `localStorage` 持久化，初始数据源为 `prompt-data-self.yaml`
 - YAML 解析：[js-yaml](https://github.com/nodeca/js-yaml)（通过 CDN 加载）
 - 可直接在浏览器中运行（支持 `file://` 和 HTTP 两种方式）
 
@@ -69,15 +72,19 @@ python3 -m http.server 8765
 
 ## 数据文件
 
-- `prompt-data.yaml` — 外部 YAML 配置文件，所有提示词数据存放于此
-- 修改 YAML 文件后需重新嵌入到 HTML 中（运行 `scripts/embed.sh` 或手动复制到 `<script type="text/yaml">` 标签内）
+- `prompt-data.yaml` — 外部 YAML 配置文件，内置提示词数据存放于此
+- `prompt-data-self.yaml` — 独立的自定义模板数据源，可手动编辑添加模板
+- 修改 YAML 文件后需重新嵌入到 HTML 中（手动复制到对应的 `<script type="text/yaml">` 标签内）
+- 自定义模板（通过 UI 保存/删除）会同步到 `localStorage`，与 YAML 数据合并加载
 
 ## 项目结构
 
 ```
 text2image-prompts/
-├── index.html              # 基础版
-├── prompt-workshop.html    # Pro 版（含内嵌 YAML 数据）
-├── prompt-data.yaml        # 提示词数据配置文件
-└── README.md               # 本文件
+├── index.html                 # 基础版
+├── prompt-workshop.html       # Pro 版（含内嵌 YAML 数据）
+├── prompt-data.yaml           # 内置提示词数据配置文件
+├── prompt-data-self.yaml      # 自定义模板数据配置文件（用户自定义）
+├── .gitignore                 # Git 忽略规则
+└── README.md                  # 本文件
 ```
