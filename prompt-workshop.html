@@ -4141,14 +4141,37 @@ function updateResult() {
     if (includeRealism) {
         // 根据主要主题添加真实感关键词
         let realismEnhance = '';
-        const hasPerson = allPrompts.some(p => p.cn.includes('人') || p.cn.includes('portrait') || p.cn.includes('face') || p.cn.includes('人物'));
-        const hasObject = allPrompts.some(p => p.cn.includes('物体') || p.cn.includes('object') || p.cn.includes('物品') || p.cn.includes('场景') || p.cn.includes('environment'));
-        const hasNature = allPrompts.some(p => p.cn.includes('自然') || p.cn.includes('nature') || p.cn.includes('植物') || p.cn.includes('植物') || p.cn.includes('树') || p.cn.includes('植物'));
+
+        // 检测主题关键词（同时检查中文和英文）
+        const hasPerson = allPrompts.some(p =>
+            p.cn.includes('人') || p.cn.includes('人物') ||
+            p.en && (p.en.includes('portrait') || p.en.includes('person') || p.en.includes('face') || p.en.includes('人像'))
+        );
+
+        const hasObject = allPrompts.some(p =>
+            p.cn.includes('物体') || p.cn.includes('物品') || p.cn.includes('产品') ||
+            p.en && (p.en.includes('object') || p.en.includes('product') || p.en.includes('物品') || p.en.includes('物体'))
+        );
+
+        const hasNature = allPrompts.some(p =>
+            p.cn.includes('自然') || p.cn.includes('自然风景') || p.cn.includes('植物') || p.cn.includes('树木') ||
+            p.en && (p.en.includes('nature') || p.en.includes('landscape') || p.en.includes('forest') || p.en.includes('自然'))
+        );
+
+        const hasFood = allPrompts.some(p =>
+            p.cn.includes('美食') || p.cn.includes('食物') || p.cn.includes('咖啡') ||
+            p.en && (p.en.includes('food') || p.en.includes('coffee') || p.en.includes('meal') || p.en.includes('美食'))
+        );
+
+        const hasArchitecture = allPrompts.some(p =>
+            p.cn.includes('建筑') || p.cn.includes('建筑摄影') ||
+            p.en && (p.en.includes('architecture') || p.en.includes('building') || p.en.includes('建筑'))
+        );
 
         // 皮肤纹理增强（针对人像）
         if (hasPerson) {
             if (copyMode === 'en') {
-                realismEnhance += ', natural skin texture, visible pores, slight skin imperfections, unretouched';
+                realismEnhance += ', natural skin texture, visible pores, slight skin imperfections, unretouched skin';
             } else {
                 realismEnhance += '，自然皮肤纹理，可见毛孔，细微瑕疵，未修图';
             }
@@ -4157,18 +4180,36 @@ function updateResult() {
         // 物体和材质增强
         if (hasObject && !hasPerson) {
             if (copyMode === 'en') {
-                realismEnhance += ', realistic material texture, natural imperfections';
+                realismEnhance += ', realistic material texture, natural imperfections, visible texture details';
             } else {
-                realismEnhance += '，真实材质质感，自然瑕疵';
+                realismEnhance += '，真实材质质感，自然瑕疵，可见纹理细节';
+            }
+        }
+
+        // 食物真实感增强
+        if (hasFood && !hasPerson && !hasObject) {
+            if (copyMode === 'en') {
+                realismEnhance += ', realistic food texture, slight food stains, natural freshness';
+            } else {
+                realismEnhance += '，真实食物质感，轻微食物污渍，自然新鲜感';
             }
         }
 
         // 自然环境增强
-        if (hasNature) {
+        if (hasNature && !hasPerson && !hasObject && !hasFood) {
             if (copyMode === 'en') {
-                realismEnhance += ', natural vegetation, slight wear and tear, realistic texture';
+                realismEnhance += ', natural vegetation, slight leaf imperfections, realistic texture';
             } else {
-                realismEnhance += '，自然植被，轻微磨损，真实质感';
+                realismEnhance += '，自然植被，轻微叶片瑕疵，真实质感';
+            }
+        }
+
+        // 建筑增强
+        if (hasArchitecture && !hasPerson && !hasObject) {
+            if (copyMode === 'en') {
+                realismEnhance += ', realistic building materials, slight wear and tear, natural surface texture';
+            } else {
+                realismEnhance += '，真实建筑材料，轻微磨损，自然表面质感';
             }
         }
 
@@ -4179,16 +4220,25 @@ function updateResult() {
             realismEnhance += '，自然光线，真实阴影，轻微阴影';
         }
 
+        // 摄影质感增强
+        if (copyMode === 'en') {
+            realismEnhance += ', film grain, subtle noise, unretouched';
+        } else {
+            realismEnhance += '，胶片颗粒，轻微噪点，未修图';
+        }
+
         // 如果没有特定主题，添加通用的真实感关键词
-        if (!hasPerson && !hasObject && !hasNature) {
+        if (!hasPerson && !hasObject && !hasNature && !hasFood && !hasArchitecture) {
             if (copyMode === 'en') {
-                realismEnhance += ', natural lighting, realistic texture, unretouched';
+                realismEnhance += ', natural lighting, realistic texture, unretouched, film grain';
             } else {
-                realismEnhance += '，自然光线，真实质感，未修图';
+                realismEnhance += '，自然光线，真实质感，未修图，胶片颗粒';
             }
         }
 
-        displayText += realismEnhance;
+        if (realismEnhance) {
+            displayText += realismEnhance;
+        }
     }
 
     // 添加负面提示词
