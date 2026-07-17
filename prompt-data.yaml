@@ -2885,3 +2885,72 @@
     彩虹:
       en: rainbow
       cn: 彩虹
+# 🚫 负面提示词 - 真实感优化
+  真实感负面提示词:
+    皮肤类:
+      塑料皮肤: plastic skin, waxy skin, doll skin
+      光滑皮肤: smooth skin, flawless skin, porcelain skin
+      美颜滤镜: beauty filter, makeup filter, airbrushed skin
+      修图过重: retouched skin, overprocessed, over-smooth
+      仿真皮肤: silicone skin, fake skin, CGI skin
+      瓦片人偶: wax figure, mannequin skin, synthetic skin
+    面部瑕疵:
+      过度对称: symmetric face, perfectly symmetrical
+      完美无瑕: perfect skin, flawless complexion
+      过度化妆: heavy makeup, caked makeup
+      滤镜感: filter effect, beauty filter
+      不自然光泽: overly glossy, unnatural shine
+    整体质量:
+      3D渲染: 3D render, CGI, rendered
+      卡通风格: cartoon, anime, illustration
+      绘画感: painting, digital art, art style
+      平面效果: flat, flat shading, 2D
+      水印: watermark, text, signature
+      低画质: low quality, blurry, out of focus
+    物体材质:
+      塑料质感: plastic texture, glossy plastic
+      虚假材质: fake material, unreal material
+      液体反光: liquid reflection, unnatural glossy
+      完美平面: perfect flat surface
+    艺术风格:
+      抽象化: abstract, stylized
+      夸张化: exaggerated, hyper-realistic (避免过度)
+      失真: distorted, warped, deformed
+      模糊边缘: blurry edges, soft focus
+# ✅ 真实感增强
+  真实感增强:
+    人物皮肤:
+      自然纹理: natural skin texture, realistic skin detail
+      可见毛孔: visible pores, micro-detail pores, fine pores
+      肤色不均: slight skin asymmetry, natural skin tone variation
+      细微瑕疵: fine lines, small blemishes, freckles, light moles
+      真实光泽: slight sheen, natural highlight, realistic shine
+      肤色质感: unretouched skin, authentic skin, realistic pores
+    光线描述:
+      自然侧光: natural side lighting, 45-degree lighting
+      窗光照射: window light from left/right
+      轻微阴影: soft shadows, subtle shadows, gentle shadows
+      温暖光感: warm tones, golden hour glow
+      不均匀光照: uneven lighting, natural light variation
+      侧逆光: side backlight, rim lighting
+      环境光: ambient light, diffused light
+    物体材质:
+      木质纹理: wood grain, visible wood texture
+      布料褶皱: fabric wrinkles, subtle folds, natural creases
+      金属质感: brushed metal, realistic metal reflection
+      磨损痕迹: slight wear and tear, natural imperfections
+      环境细节: environmental clutter, natural dust, slight scratches
+    摄影参数:
+      人像镜头: 85mm lens, 50mm prime lens
+      景深控制: shallow depth of field, bokeh background
+      镜头模糊: soft focus, natural blur
+      胶片颗粒: film grain, subtle noise, 35mm film
+      相机质感: camera sensor noise, analog photography feel
+      曝光真实: natural exposure, realistic color balance
+    场景细节:
+      生活气息: lived-in feel, natural clutter
+      食物真实: realistic food texture, slight food stains
+      地面质感: realistic ground texture, natural surface
+      植物自然: natural vegetation, slight imperfections in leaves
+      镜头光晕: natural lens flare, realistic lighting effects
+      环境杂散: subtle environmental details, natural imperfections

@@ -295,6 +295,16 @@
                     </label>
                     <textarea class="custom-textarea" id="negativeInput" placeholder="负面提示词（如：low quality, blurry, deformed）"></textarea>
                 </div>
+                <div class="realism-section" style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <label class="negative-toggle">
+                        <input type="checkbox" id="includeRealism">
+                        <span class="toggle-switch"></span>
+                        <span class="negative-text">添加真实感增强</span>
+                    </label>
+                    <div style="font-size: 0.75em; color: #666; margin-top: 4px; line-height: 1.4;">
+                        勾选后将自动添加自然皮肤纹理、真实光线描述和材质细节，减少AI感
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -3738,6 +3748,7 @@ function renderModules() {
     // 定义模块排序顺序
     const orderedKeys = [
         "🚀 快捷脚手架",
+        "✅ 真实感增强",
         "🎨 画面风格",
         "💡 光影效果",
         "🌍 场景主题",
@@ -3752,6 +3763,7 @@ function renderModules() {
         "🌟 特效氛围",
         "🖌️ 细节修饰",
         "📷 摄影参数",
+        "🚫 负面提示词",
         "🎮 游戏风格",
         "🔮 特殊效果"
     ];
@@ -4108,6 +4120,7 @@ function updateResult() {
     const customInput = document.getElementById('customInput').value.trim();
     const negativeInput = document.getElementById('negativeInput').value.trim();
     const includeNegative = document.getElementById('includeNegative').checked;
+    const includeRealism = document.getElementById('includeRealism').checked;
     
     let allPrompts = [...selectedPrompts];
     
@@ -4124,6 +4137,61 @@ function updateResult() {
         displayText += (displayText ? ', ' : '') + customInput;
     }
     
+    // 添加真实感增强
+    if (includeRealism) {
+        // 根据主要主题添加真实感关键词
+        let realismEnhance = '';
+        const hasPerson = allPrompts.some(p => p.cn.includes('人') || p.cn.includes('portrait') || p.cn.includes('face') || p.cn.includes('人物'));
+        const hasObject = allPrompts.some(p => p.cn.includes('物体') || p.cn.includes('object') || p.cn.includes('物品') || p.cn.includes('场景') || p.cn.includes('environment'));
+        const hasNature = allPrompts.some(p => p.cn.includes('自然') || p.cn.includes('nature') || p.cn.includes('植物') || p.cn.includes('植物') || p.cn.includes('树') || p.cn.includes('植物'));
+
+        // 皮肤纹理增强（针对人像）
+        if (hasPerson) {
+            if (copyMode === 'en') {
+                realismEnhance += ', natural skin texture, visible pores, slight skin imperfections, unretouched';
+            } else {
+                realismEnhance += '，自然皮肤纹理，可见毛孔，细微瑕疵，未修图';
+            }
+        }
+
+        // 物体和材质增强
+        if (hasObject && !hasPerson) {
+            if (copyMode === 'en') {
+                realismEnhance += ', realistic material texture, natural imperfections';
+            } else {
+                realismEnhance += '，真实材质质感，自然瑕疵';
+            }
+        }
+
+        // 自然环境增强
+        if (hasNature) {
+            if (copyMode === 'en') {
+                realismEnhance += ', natural vegetation, slight wear and tear, realistic texture';
+            } else {
+                realismEnhance += '，自然植被，轻微磨损，真实质感';
+            }
+        }
+
+        // 光线描述增强
+        if (copyMode === 'en') {
+            realismEnhance += ', natural lighting, realistic shadows, slight shadows';
+        } else {
+            realismEnhance += '，自然光线，真实阴影，轻微阴影';
+        }
+
+        // 如果没有特定主题，添加通用的真实感关键词
+        if (!hasPerson && !hasObject && !hasNature) {
+            if (copyMode === 'en') {
+                realismEnhance += ', natural lighting, realistic texture, unretouched';
+            } else {
+                realismEnhance += '，自然光线，真实质感，未修图';
+            }
+        }
+
+        displayText += realismEnhance;
+    }
+
+    // 添加负面提示词
     if (includeNegative && negativeInput) {
         displayText += '\n\nNegative prompt: ' + negativeInput;
     }
