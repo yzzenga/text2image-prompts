@@ -58,6 +58,9 @@
         .module-icon { font-size: 1em; }
         .module-title { font-size: 0.9em; font-weight: 600; color: #00d2ff; flex: 1; }
         .module-count { font-size: 0.7em; color: #666; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 6px; }
+.module-count-selected { font-size: 0.7em; color: #4caf50; background: rgba(76,175,80,0.15); padding: 2px 6px; border-radius: 6px; display: none; font-weight: 700; }
+.module-count-selected.has-selected { display: inline; }
+.module-count-selected::before { content: '✓ '; }
         .module-arrow { color: #666; transition: transform 0.3s; font-size: 0.7em; }
         .module-arrow.collapsed { transform: rotate(-90deg); }
         .module-body { padding: 8px 12px; max-height: 400px; overflow-y: auto; transition: max-height 0.4s; }
@@ -160,6 +163,87 @@
         .modal-preview { margin-top: 10px; display: none; }
         .modal-preview.show { display: block; }
         .modal-preview img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* 多行筛选导航组件样式 */
+        .filter-nav {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .filter-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .filter-row:last-child {
+            border-bottom: none;
+        }
+        .filter-label {
+            font-size: 0.82em;
+            color: #888;
+            min-width: 60px;
+            white-space: nowrap;
+            padding-top: 4px;
+        }
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1;
+        }
+        .filter-option {
+            font-size: 0.82em;
+            color: #ccc;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .filter-option:hover {
+            color: #00d2ff;
+            background: rgba(0,210,255,0.1);
+        }
+        .filter-option.active {
+            color: #00d2ff;
+            font-weight: 500;
+            background: rgba(0,210,255,0.15);
+        }
+        .filter-more {
+            font-size: 0.78em;
+            color: #888;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-more:hover {
+            color: #00d2ff;
+        }
+        .filter-more::after {
+            content: ' ▾';
+        }
+        .filter-more.expanded::after {
+            content: ' ▴';
+        }
+        .filter-extra {
+            display: none;
+        }
+        .filter-extra.show {
+            display: flex;
+        }
+        .filter-option .selected-count {
+            color: #4caf50;
+            font-weight: 700;
+            font-size: 0.82em;
+        }
+        .filter-option.active .selected-count {
+            color: #66ff66;
+        }
     </style>
     <script src="https://unpkg.com/js-yaml@4/dist/js-yaml.min.js"></script>
 </head>
@@ -173,6 +257,10 @@
             <div class="left-panel">
                 <div class="search-box">
                     <input type="text" class="search-input" placeholder="🔍 搜索提示词（支持中英文）..." id="searchInput">
+                </div>
+                <!-- 多行筛选导航区域 -->
+                <div class="filter-nav" id="filterNav">
+                    <!-- 动态生成筛选行 -->
                 </div>
                 <div class="modules-grid" id="modulesContainer"></div>
             </div>
@@ -253,6 +341,36 @@
     梦幻人像:
       en: ethereal portrait, soft dreamy lighting, bokeh background, pastel color palette, romantic atmosphere, lens flare, dreamlike quality
       cn: 空灵人像，柔和梦幻灯光，散景背景，粉彩色调，浪漫氛围，镜头光晕，梦幻质感
+    韩系清纯:
+      en: Korean style portrait, clean aesthetic, soft natural light, minimal makeup, pure expression, pastel tones, simple background, fresh look
+      cn: 韩系人像，简洁美学，柔和自然光，淡妆，纯真表情，粉彩色调，简洁背景，清新look
+    欧美性感:
+      en: sexy portrait, dramatic lighting, confident pose, glamorous makeup, bold colors, fashion editorial, intense gaze, high fashion
+      cn: 性感人像，戏剧性灯光，自信姿势，迷人妆容，大胆色彩，时尚大片，强烈眼神，高级时装
+    复古港风:
+      en: Hong Kong retro style, 90s aesthetic, neon lights, moody atmosphere, film grain, vintage colors, urban night, cinematic feel
+      cn: 港风复古，90年代美学，霓虹灯，忧郁氛围，胶片颗粒，复古色彩，城市夜景，电影感
+    日系森女:
+      en: Mori girl style, natural woodland setting, earth tones, flowing fabrics, gentle expression, soft focus, ethereal atmosphere, organic feel
+      cn: 日系森女风，自然林地场景，大地色系，飘逸面料，温柔表情，柔和对焦，空灵氛围，有机质感
+    欧美街头:
+      en: urban street portrait, gritty texture, natural light, candid pose, city background, documentary style, authentic emotion, raw beauty
+      cn: 城市街头人像，粗粝质感，自然光线，抓拍姿势，城市背景，纪录片风格，真实情感，原始美感
+    复古学院:
+      en: preppy style, school uniform, vintage aesthetic, soft lighting, youthful expression, pastel colors, nostalgic feel, classic look
+      cn: 学院风，校服，复古美学，柔和灯光，青春表情，粉彩色调，怀旧感，经典look
+    日系清纯:
+      en: Japanese pure style, innocent expression, soft lighting, white dress, natural beauty, dreamy atmosphere, gentle smile, angelic look
+      cn: 日系清纯，纯真表情，柔和灯光，白色连衣裙，自然美，梦幻氛围，温柔微笑，天使look
+    韩系时尚:
+      en: Korean fashion portrait, trendy outfit, modern styling, confident pose, urban background, stylish look, current fashion, K-beauty
+      cn: 韩系时尚，潮流穿搭，现代造型，自信姿势，城市背景，时尚look，当下流行，韩式美妆
+    欧美复古:
+      en: vintage Western portrait, retro fashion, classic makeup, elegant pose, timeless beauty, film grain, warm tones, old Hollywood glamour
+      cn: 欧美复古，复古时尚，经典妆容，优雅姿势，永恒美，胶片颗粒，暖色调，老好莱坞魅力
+    日系文艺:
+      en: Japanese artistic style, creative composition, unique perspective, artistic lighting, expressive mood, avant-garde, experimental, fine art
+      cn: 日系文艺，创意构图，独特视角，艺术灯光，表现情绪，前卫，实验性，艺术品质
   风景摄影:
     黄金时刻:
       en: golden hour lighting, dramatic sky, warm orange tones, long exposure, landscape photography, vivid colors, professional composition, 24mm wide angle
@@ -269,6 +387,33 @@
     海景日落:
       en: ocean sunset, dramatic clouds, golden reflections on water, long exposure silky water, warm color palette, peaceful atmosphere
       cn: 海边日落，戏剧性云层，水面金色倒影，长曝光丝滑水面，暖色调，宁静氛围
+    秋色红叶:
+      en: autumn foliage, vibrant red and orange leaves, forest path, soft sunlight, warm tones, peaceful atmosphere, nature walk, seasonal beauty
+      cn: 秋季红叶，鲜艳红橙色叶子，森林小径，柔和阳光，暖色调，宁静氛围，自然漫步，季节性美景
+    雪山倒影:
+      en: snow mountain reflection, crystal clear lake, mirror image, pristine wilderness, cold tones, majestic scenery, alpine landscape, winter paradise
+      cn: 雪山倒影，清澈湖泊，镜像倒影，原始荒野，冷色调，宏伟景色，高山景观，冬季天堂
+    热带海滩:
+      en: tropical beach paradise, turquoise water, white sand, palm trees, sunset glow, vacation vibes, idyllic scenery, Caribbean style
+      cn: 热带海滩天堂，绿松石色海水，白色沙滩，棕榈树，日落余晖，度假氛围，田园风光，加勒比风格
+    田园牧歌:
+      en: pastoral countryside, rolling hills, golden wheat fields, rustic farmhouse, warm sunset, peaceful rural life, European countryside, romantic landscape
+      cn: 田园风光，连绵山丘，金色麦田，质朴农舍，温暖日落，宁静乡村生活，欧洲乡村，浪漫风景
+    湖光山色:
+      en: lake and mountain scenery, serene water surface, surrounding peaks, morning mist, tranquil atmosphere, landscape reflection, nature harmony, peaceful retreat
+      cn: 湖光山色，平静水面，环绕山峰，晨雾，宁静氛围，风景倒影，自然和谐，宁静 retreat
+    沙漠骆驼:
+      en: desert landscape, camel caravan, golden sand dunes, dramatic sky, vast emptiness, adventure atmosphere, Sahara style, exotic journey
+      cn: 沙漠景观，骆驼商队，金色沙丘，戏剧性天空，广阔空旷，冒险氛围，撒哈拉风格，异域旅程
+    冰川极光:
+      en: glacier aurora, northern lights, icy landscape, dramatic sky, ethereal glow, Arctic wilderness, frozen paradise, magical winter scene
+      cn: 冰川极光，北极光，冰冻景观，戏剧性天空，空灵光芒，北极荒野，冰冻天堂，神奇冬日景象
+    城市夜景:
+      en: city nightscape, glowing lights, urban skyline, reflective water, modern architecture, vibrant atmosphere, metropolitan beauty, nightscape photography
+      cn: 城市夜景，闪烁灯光，城市天际线，水面倒影，现代建筑，活力氛围，大都市美景，夜景摄影
+    云海日出:
+      en: sea of clouds sunrise, dramatic sky, golden light breaking through, mountain peaks above clouds, epic scenery, atmospheric phenomenon, heavenly view, breathtaking panorama
+      cn: 云海日出，戏剧性天空，金色光线穿透，云层之上的山峰，史诗级景色，大气现象，天堂视角，令人叹为观止的全景
   产品摄影:
     极简产品:
       en: product photography, minimalist white background, studio lighting, soft shadows, commercial quality, clean composition, sharp focus, high-end look
@@ -285,6 +430,33 @@
     珠宝首饰:
       en: jewelry photography, dark velvet background, dramatic spotlight, diamond sparkle, luxury feel, macro detail, elegant composition
       cn: 珠宝摄影，深色天鹅绒背景，戏剧性聚光灯，钻石闪耀，奢华质感，微距细节，优雅构图
+    服装展示:
+      en: fashion photography, mannequin or model, clean background, studio lighting, commercial quality, apparel showcase, professional styling, retail look
+      cn: 服装摄影，人体模型或模特，干净背景，工作室灯光，商业品质，服装展示，专业造型，零售look
+    家居用品:
+      en: home decor photography, styled interior setting, natural light, lifestyle product shot, warm atmosphere, cozy feel, interior design, modern home
+      cn: 家居用品摄影，风格化室内环境，自然光，生活方式产品拍摄，温暖氛围，舒适感，室内设计，现代家居
+    运动装备:
+      en: sports equipment photography, dynamic angle, dramatic lighting, action feel, high-energy atmosphere, fitness gear, athletic style, performance focus
+      cn: 运动装备摄影，动态角度，戏剧性灯光，动作感，高能量氛围，健身装备，运动风格，性能焦点
+    文具办公:
+      en: stationery photography, organized flat lay, soft natural light, minimalist aesthetic, clean composition, office supplies, professional look, productive vibe
+      cn: 文具摄影，组织化平铺，柔和自然光，极简美学，简洁构图，办公用品，专业look，高效氛围
+    玩具手办:
+      en: toy photography, collectible figures, dramatic lighting, detailed sculpting, vibrant colors, toy photography setup, playful atmosphere, hobby collection
+      cn: 玩具摄影，收藏人偶，戏剧性灯光，精细雕刻，鲜艳色彩，玩具摄影设置，俏皮氛围，爱好收藏
+    酒水饮品:
+      en: beverage photography, glassware with liquid, dramatic lighting, condensation droplets, premium feel, bar atmosphere, refreshing look, product showcase
+      cn: 酒水摄影，玻璃杯与液体，戏剧性灯光，凝结水珠，高级质感，酒吧氛围，清爽look，产品展示
+    数码配件:
+      en: digital accessories photography, tech gadgets, clean background, modern aesthetic, product lineup, tech lifestyle, gadget photography, digital essentials
+      cn: 数码配件摄影，科技小工具，干净背景，现代美学，产品阵容，科技生活方式，小工具摄影，数码必备品
+    手工皮具:
+      en: leather goods photography, premium leather texture, warm tones, craftsmanship detail, luxury accessories, artisan quality, classic design, timeless appeal
+      cn: 手工皮具摄影，高级皮革质感，暖色调，工艺细节，奢华配饰，工匠品质，经典设计，永恒 appeal
+    美妆彩妆:
+      en: cosmetics photography, vibrant color swatches, artistic arrangement, glamorous feel, beauty products, makeup palette, professional quality, luxury branding
+      cn: 美妆摄影，鲜艳色彩样品，艺术排列，迷人感觉，美妆产品，彩妆盘，专业品质，奢华品牌
   概念艺术:
     奇幻世界:
       en: fantasy concept art, epic landscape, magical atmosphere, volumetric lighting, detailed environment, matte painting style, cinematic composition, 8K
@@ -301,6 +473,30 @@
     废土末日:
       en: post-apocalyptic concept art, ruined city, overgrown vegetation, dramatic sky, desolate atmosphere, detailed decay, cinematic composition
       cn: 末日废土概念艺术，废墟城市，植被蔓延，戏剧性天空，荒凉氛围，精细衰败细节，电影构图
+    蒸汽朋克:
+      en: steampunk concept art, Victorian era machinery, brass gears, clockwork mechanisms, industrial aesthetic, retro-futuristic, detailed engineering, adventure atmosphere
+      cn: 蒸汽朋克概念艺术，维多利亚时代机械，黄铜齿轮，发条装置，工业美学，复古未来主义，精细工程，冒险氛围
+    赛博朋克都市:
+      en: cyberpunk cityscape, neon-lit streets, futuristic architecture, rain-soaked atmosphere, high-tech low-life, holographic ads, urban dystopia, blade runner style
+      cn: 赛博朋克都市，霓虹灯街道，未来主义建筑，雨水浸透的氛围，高科技低生活，全息广告，城市反乌托邦，银翼杀手风格
+    奇幻城堡:
+      en: fantasy castle, medieval architecture, magical towers, enchanted forest backdrop, dramatic lighting, fairy tale atmosphere, epic scale, RPG game art
+      cn: 奇幻城堡，中世纪建筑，魔法塔楼，魔法森林背景，戏剧性灯光，童话氛围，史诗规模，RPG游戏艺术
+    太空站:
+      en: space station interior, futuristic technology, zero gravity environment, airlocks, control panels, sci-fi atmosphere, space exploration, interstellar design
+      cn: 太空站内部，未来科技，零重力环境，气闸，控制面板，科幻氛围，太空探索，星际设计
+    深海世界:
+      en: underwater city, bioluminescent creatures, coral architecture, deep sea atmosphere, aquatic technology, oceanic civilization, mysterious depths, aquaman style
+      cn: 深海城市，生物发光生物，珊瑚建筑，深海氛围，水生技术，海洋文明，神秘深处，海王风格
+    机械装甲:
+      en: mech armor design, giant robot, futuristic warfare, detailed engineering, battle-damaged, military sci-fi, anime mecha style, powerful exoskeleton
+      cn: 机械装甲设计，巨型机器人，未来战争，精细工程，战损状态，军事科幻，动漫机甲风格，强力外骨骼
+    魔法学院:
+      en: magical academy, wizard school, enchanted library, floating candles, mystical atmosphere, fantasy education, magical creatures, Harry Potter inspired
+      cn: 魔法学院，巫师学校，魔法图书馆，漂浮蜡烛，神秘氛围，奇幻教育，神奇生物，哈利波特风格
+    末日方舟:
+      en: doomsday ark, massive survival vessel, post-apocalyptic refuge, dramatic clouds, hope amidst despair, epic scale, survival story, cinematic composition
+      cn: 末日方舟，巨型生存船，末日避难所，戏剧性云层，绝望中的希望，史诗规模，生存故事，电影构图
   动漫风格:
     日系动漫:
       en: Japanese anime style, cel shading, vibrant colors, detailed character design, expressive eyes, dynamic pose, clean line art, Studio Ghibli quality
@@ -317,6 +513,33 @@
     Q版萌系:
       en: chibi style, cute character design, big head small body, kawaii aesthetic, pastel colors, adorable expression, simple background
       cn: Q版风格，可爱角色设计，大头小身体，卡哇伊美学，粉彩色调，萌萌表情，简洁背景
+    美式漫画:
+      en: American comic style, bold outlines, dynamic poses, vibrant colors, superhero aesthetic, action-packed, comic book shading, Marvel/DC inspired
+      cn: 美式漫画风格，粗轮廓线，动态姿势，鲜艳色彩，超级英雄美学，动作密集，漫画书阴影，漫威/DC风格
+    法式漫画:
+      en: French comic style, BD aesthetic, clean lines, detailed backgrounds, European storytelling, Tintin style, ligne claire, adventure atmosphere
+      cn: 法式漫画风格，BD美学，干净线条，精细背景，欧洲叙事，丁丁风格，清晰线条，冒险氛围
+    条漫风格:
+      en: webtoon format, vertical scrolling, soft colors, romantic atmosphere, modern Korean webtoon style, emotional storytelling, digital art, web comic aesthetic
+      cn: 条漫格式，垂直滚动，柔和色彩，浪漫氛围，现代韩国网络漫画风格，情感叙事，数字艺术，网络漫画美学
+    像素复古:
+      en: pixel art retro, 8-bit aesthetic, limited color palette, nostalgic gaming, old school console style, retro gaming charm, vintage pixels, classic game art
+      cn: 像素复古，8位美学，有限色怀旧游戏，老式主机风格，复古游戏魅力，复古像素，经典游戏艺术
+    赛璐璐动画:
+      en: cel animation style, traditional anime look, hand-drawn feel, flat colors, clean lines, 90s anime aesthetic, Studio Ghibli inspired, classic animation
+      cn: 赛璐璐动画风格，传统动漫外观，手绘感，平涂色彩，干净线条，90年代动漫美学，吉卜力风格，经典动画
+    水彩动漫:
+      en: watercolor anime style, soft blended colors, dreamy atmosphere, artistic brushstrokes, emotional expression, painterly illustration, fine art anime, delicate rendering
+      cn: 水彩动漫风格，柔和混合色彩，梦幻氛围，艺术笔触，情感表达，绘画感插画，艺术动漫，细腻渲染
+    赛博动漫:
+      en: cyberpunk anime, neon-lit characters, futuristic outfits, high-tech aesthetic, digital art, glowing effects, cybernetic enhancements, sci-fi anime style
+      cn: 赛博动漫，霓虹灯角色，未来主义服装，高科技美学，数字艺术，发光效果，赛博增强，科幻动漫风格
+    黑暗奇幻:
+      en: dark fantasy anime, gothic atmosphere, detailed shadows, mysterious characters, horror elements, intense mood, dark color palette, supernatural themes
+      cn: 黑暗奇幻动漫，哥特氛围，精细阴影，神秘角色，恐怖元素，强烈情绪，暗色调，超自然主题
+    像素动态:
+      en: animated pixel art, sprite animation, retro game characters, pixel movement, nostalgic gaming, 16-bit animation, pixel art motion, classic arcade style
+      cn: 像素动态，精灵动画，复古游戏角色，像素移动，怀旧游戏，16位动画，像素艺术运动，经典街机风格
   写实风格:
     超写实人像:
       en: photorealistic portrait, hyper-detailed skin texture, natural lighting, 8K resolution, sharp focus, realistic eyes, professional photography, RAW quality
@@ -333,6 +556,33 @@
     黑白艺术:
       en: black and white photography, high contrast, dramatic shadows, timeless aesthetic, fine art print, emotional depth, minimalist composition
       cn: 黑白摄影，高对比度，戏剧性阴影，永恒美学，艺术微喷，情感深度，极简构图
+    时尚大片:
+      en: fashion editorial, high-end photography, model pose, designer clothing, luxury aesthetic, magazine cover quality, professional lighting, Vogue style
+      cn: 时尚大片，高端摄影，模特姿势，设计师服装，奢华美学，杂志封面品质，专业灯光，Vogue风格
+    美食特写:
+      en: food close-up, macro photography, appetizing details, steam rising, texture focus, culinary art, restaurant quality, food styling
+      cn: 美食特写，微距摄影，诱人细节，蒸汽上升，质感焦点，烹饪艺术，餐厅品质，食物造型
+    建筑摄影:
+      en: architectural photography, clean lines, geometric composition, modern buildings, structural beauty, urban landscape, professional perspective, architectural detail
+      cn: 建筑摄影，干净线条，几何构图，现代建筑，结构美，城市景观，专业视角，建筑细节
+    野生动物:
+      en: wildlife photography, animal in natural habitat, sharp focus, dynamic action, nature documentary, National Geographic style, animal behavior, wild beauty
+      cn: 野生动物摄影，自然栖息地动物，精准对焦，动态动作，自然纪录片，国家地理风格，动物行为，野性美
+    运动瞬间:
+      en: sports photography, peak action moment, motion freeze, athletic performance, dynamic composition, sports arena, professional sports coverage, action shot
+      cn: 运动摄影，巅峰动作瞬间，动作冻结，运动表现，动态构图，运动场馆，专业体育报道，动作 shot
+    婚纱摄影:
+      en: wedding photography, romantic couple, elegant dress, emotional moments, soft natural light, timeless beauty, love story, professional wedding album
+      cn: 婚纱摄影，浪漫情侣，优雅礼服，情感瞬间，柔和自然光，永恒美，爱情故事，专业婚纱相册
+    时尚人像:
+      en: fashion portrait, trendy styling, bold makeup, confident expression, modern aesthetic, fashion-forward, editorial quality, stylish look
+      cn: 时尚人像，潮流造型，大胆妆容，自信表情，现代美学，时尚前沿，编辑品质，时尚 look
+    商业广告:
+      en: commercial advertising, product placement, brand messaging, professional retouching, high-end quality, advertising campaign, persuasive imagery, marketing material
+      cn: 商业广告，产品植入，品牌信息，专业修图，高端品质，广告活动，说服性图像，营销材料
+    艺术人像:
+      en: fine art portrait, conceptual photography, artistic lighting, emotional depth, creative composition, gallery quality, artistic expression, museum-worthy
+      cn: 艺术人像，概念摄影，艺术灯光，情感深度，创意构图，画廊品质，艺术表达，博物馆级
   艺术风格:
     油画风格:
       en: oil painting style, thick impasto texture, rich colors, visible brushstrokes, classical composition, museum quality, Rembrandt lighting
@@ -349,6 +599,718 @@
     浮世绘风格:
       en: Japanese ukiyo-e style, woodblock print aesthetic, flat colors, outlined forms, traditional composition, Edo period inspiration
       cn: 日式浮世绘风格，木版画美学，平涂色彩，勾线造型，传统构图，江户时代灵感
+    印象派:
+      en: Impressionist style, visible brushstrokes, light and shadow play, outdoor scenes, Monet-inspired, soft edges, atmospheric perspective, en plein air
+      cn: 印象派风格，可见笔触，光影游戏，户外场景，莫奈风格，柔和边缘，大气透视，外光画法
+    立体主义:
+      en: Cubism style, geometric shapes, fragmented forms, multiple perspectives, Picasso-inspired, abstract composition, analytical cubism, modern art
+      cn: 立体主义风格，几何形状，碎片化形式，多视角，毕加索风格，抽象构图，分析立体主义，现代艺术
+    超现实主义:
+      en: Surrealism style, dreamlike imagery, impossible combinations, Dalí-inspired, symbolic elements, subconscious themes, psychological depth, fantasy reality
+      cn: 超现实主义风格，梦幻图像，不可能的组合，达利风格，象征元素，潜意识主题，心理深度，幻想现实
+    表现主义:
+      en: Expressionism style, emotional intensity, bold colors, distorted forms, angular shapes, raw emotion, psychological expression, inner reality
+      cn: 表现主义风格，情感强度，大胆色彩，扭曲形式，棱角形状，原始情感，心理表达，内在现实
+    巴洛克:
+      en: Baroque style, dramatic lighting, rich colors, grandeur, detailed ornamentation, dynamic composition, emotional intensity, classical elegance
+      cn: 巴洛克风格，戏剧性灯光，丰富色彩，宏伟，精细装饰，动态构图，情感强度，古典优雅
+    洛可可:
+      en: Rococo style, pastel colors, ornate details, playful themes, elegant curves, light-hearted atmosphere, decorative beauty, French aristocratic aesthetic
+      cn: 洛可可风格，粉彩色调，华丽细节，俏皮主题，优雅曲线，轻松氛围，装饰美，法国贵族美学
+    新艺术运动:
+      en: Art Nouveau style, organic forms, flowing lines, floral motifs, decorative patterns, natural inspiration, elegant curves, Alphonse Mucha inspired
+      cn: 新艺术运动风格，有机形态，流畅线条，花卉图案，装饰图案，自然灵感，优雅曲线，阿尔丰斯·穆夏风格
+    极简主义:
+      en: Minimalism style, clean lines, simple forms, limited color palette, geometric precision, negative space, modern aesthetic, less is more philosophy
+      cn: 极简主义风格，干净线条，简单形式，有限色盘，几何精度，负空间，现代美学，少即是多哲学
+    解构主义:
+      en: Deconstructivism style, fragmented architecture, unexpected angles, challenging forms, asymmetric design, conceptual approach, avant-garde aesthetic, architectural innovation
+      cn: 解构主义风格，碎片化建筑，意想不到的角度，挑战性形式，非对称设计，概念方法，前卫美学，建筑创新
+    原始艺术:
+      en: Primitive art style, tribal motifs, earth tones, symbolic patterns, raw textures, cultural heritage, ethnic inspiration, ancestral expression
+      cn: 原始艺术风格，部落图案，大地色调，象征图案，粗糙质感，文化遗产，民族灵感，祖先表达
+    未来主义:
+      en: Futurism style, dynamic movement, speed lines, technological themes, industrial aesthetic, energy and motion, modern life, machine age inspiration
+      cn: 未来主义风格，动态运动，速度线，科技主题，工业美学，能量与运动，现代生活，机器时代灵感
+🎨 画面风格:
+  画风类型:
+    扁平插画:
+      en: flat illustration
+      cn: 扁平插画
+    像素风格:
+      en: pixel art
+      cn: 像素风格
+    赛博朋克:
+      en: cyberpunk
+      cn: 赛博朋克
+    蒸汽波:
+      en: vaporwave
+      cn: 蒸汽波
+    波普艺术:
+      en: pop art
+      cn: 波普艺术
+    超现实主义:
+      en: surrealism
+      cn: 超现实主义
+    极简主义:
+      en: minimalism
+      cn: 极简主义
+    装饰艺术:
+      en: art deco
+      cn: 装饰艺术
+    新艺术运动:
+      en: art nouveau
+      cn: 新艺术运动
+    复古风格:
+      en: retro style
+      cn: 复古风格
+    未来主义:
+      en: futurism
+      cn: 未来主义
+    抽象艺术:
+      en: abstract art
+      cn: 抽象艺术
+    表现主义:
+      en: expressionism
+      cn: 表现主义
+    印象派:
+      en: impressionism
+      cn: 印象派
+    写实主义:
+      en: realism
+      cn: 写实主义
+    奇幻风格:
+      en: fantasy style
+      cn: 奇幻风格
+    暗黑风格:
+      en: dark style
+      cn: 暗黑风格
+    童话风格:
+      en: fairy tale style
+      cn: 童话风格
+    唯美风格:
+      en: aesthetic style
+      cn: 唯美风格
+    哥特风格:
+      en: gothic style
+      cn: 哥特风格
+  绘画媒介:
+    油画:
+      en: oil painting
+      cn: 油画
+    水彩:
+      en: watercolor
+      cn: 水彩
+    素描:
+      en: pencil sketch
+      cn: 素描
+    水墨画:
+      en: ink wash painting
+      cn: 水墨画
+    彩铅:
+      en: colored pencil
+      cn: 彩铅
+    蜡笔画:
+      en: crayon drawing
+      cn: 蜡笔画
+    粉彩画:
+      en: pastel drawing
+      cn: 粉彩画
+    丙烯画:
+      en: acrylic painting
+      cn: 丙烯画
+    版画:
+      en: printmaking
+      cn: 版画
+    喷绘:
+      en: spray paint art
+      cn: 喷绘
+    蚀刻:
+      en: etching
+      cn: 蚀刻
+    木刻:
+      en: woodcut
+      cn: 木刻
+  二次元风格:
+    日系动漫:
+      en: Japanese anime style
+      cn: 日系动漫
+    赛璐璐风格:
+      en: cel shading
+      cn: 赛璐璐风格
+    厚涂风格:
+      en: thick paint style
+      cn: 厚涂风格
+    薄涂风格:
+      en: light paint style
+      cn: 薄涂风格
+    线稿风格:
+      en: line art style
+      cn: 线稿风格
+    彩色线稿:
+      en: colored line art
+      cn: 彩色线稿
+    平涂:
+      en: flat coloring
+      cn: 平涂
+    厚涂赛璐璐:
+      en: thick cel shading
+      cn: 厚涂赛璐璐
+    韩漫风格:
+      en: Korean webtoon style
+      cn: 韩漫风格
+    美漫风格:
+      en: American comic style
+      cn: 美漫风格
+  3D风格:
+    3D渲染:
+      en: 3D render
+      cn: 3D渲染
+    等距视角:
+      en: isometric view
+      cn: 等距视角
+    低多边形:
+      en: low poly
+      cn: 低多边形
+    体素风格:
+      en: voxel art
+      cn: 体素风格
+    玻璃拟态:
+      en: glassmorphism
+      cn: 玻璃拟态
+    黏土风格:
+      en: claymation style
+      cn: 黏土风格
+    微缩模型:
+      en: miniature model
+      cn: 微缩模型
+    塑料质感:
+      en: plastic texture
+      cn: 塑料质感
+    金属质感:
+      en: metallic texture
+      cn: 金属质感
+    毛绒质感:
+      en: fluffy texture
+      cn: 毛绒质感
+💡 光影效果:
+  光源类型:
+    自然光:
+      en: natural lighting
+      cn: 自然光
+    人工光:
+      en: artificial lighting
+      cn: 人工光
+    环境光:
+      en: ambient lighting
+      cn: 环境光
+    工作室灯光:
+      en: studio lighting
+      cn: 工作室灯光
+    霓虹灯光:
+      en: neon lights
+      cn: 霓虹灯光
+    LED灯光:
+      en: LED lighting
+      cn: LED灯光
+    烛光:
+      en: candlelight
+      cn: 烛光
+    火光:
+      en: firelight
+      cn: 火光
+    月光:
+      en: moonlight
+      cn: 月光
+    阳光:
+      en: sunlight
+      cn: 阳光
+    星空光线:
+      en: starlight
+      cn: 星空光线
+  光线方向:
+    正面光:
+      en: front lighting
+      cn: 正面光
+    侧光:
+      en: side lighting
+      cn: 侧光
+    逆光:
+      en: backlighting
+      cn: 逆光
+    顶光:
+      en: top lighting
+      cn: 顶光
+    底光:
+      en: under lighting
+      cn: 底光
+    45度光:
+      en: 45 degree lighting
+      cn: 45度光
+    伦勃朗光:
+      en: Rembrandt lighting
+      cn: 伦勃朗光
+    蝴蝶光:
+      en: butterfly lighting
+      cn: 蝴蝶光
+    环形光:
+      en: ring lighting
+      cn: 环形光
+  光线质感:
+    柔和光线:
+      en: soft lighting
+      cn: 柔和光线
+    硬光:
+      en: hard lighting
+      cn: 硬光
+    漫射光:
+      en: diffused lighting
+      cn: 漫射光
+    戏剧性灯光:
+      en: dramatic lighting
+      cn: 戏剧性灯光
+    聚光灯:
+      en: spotlight
+      cn: 聚光灯
+    柔光箱:
+      en: softbox lighting
+      cn: 柔光箱
+    边缘光:
+      en: rim lighting
+      cn: 边缘光
+    轮廓光:
+      en: silhouette lighting
+      cn: 轮廓光
+  特殊光影:
+    体积光:
+      en: volumetric lighting
+      cn: 体积光
+    丁达尔效应:
+      en: Tyndall effect
+      cn: 丁达尔效应
+    光束:
+      en: light beams
+      cn: 光束
+    光线散射:
+      en: light scattering
+      cn: 光线散射
+    焦散光:
+      en: caustics
+      cn: 焦散光
+    全局光照:
+      en: global illumination
+      cn: 全局光照
+    光线追踪:
+      en: ray tracing
+      cn: 光线追踪
+    光影交错:
+      en: interplay of light and shadow
+      cn: 光影交错
+    明暗对比:
+      en: chiaroscuro
+      cn: 明暗对比
+  时间氛围:
+    黄金时刻:
+      en: golden hour
+      cn: 黄金时刻
+    蓝色时刻:
+      en: blue hour
+      cn: 蓝色时刻
+    正午阳光:
+      en: noon sunlight
+      cn: 正午阳光
+    黄昏:
+      en: dusk
+      cn: 黄昏
+    日出:
+      en: sunrise
+      cn: 日出
+    日落:
+      en: sunset
+      cn: 日落
+    夜晚:
+      en: nighttime
+      cn: 夜晚
+    黎明:
+      en: dawn
+      cn: 黎明
+    阴天:
+      en: overcast sky
+      cn: 阴天
+🌍 场景主题:
+  自然景观:
+    森林:
+      en: forest
+      cn: 森林
+    热带雨林:
+      en: tropical rainforest
+      cn: 热带雨林
+    沙漠:
+      en: desert
+      cn: 沙漠
+    草原:
+      en: grassland
+      cn: 草原
+    雪山:
+      en: snow mountain
+      cn: 雪山
+    火山:
+      en: volcano
+      cn: 火山
+    峡谷:
+      en: canyon
+      cn: 峡谷
+    瀑布:
+      en: waterfall
+      cn: 瀑布
+    湖泊:
+      en: lake
+      cn: 湖泊
+    海洋:
+      en: ocean
+      cn: 海洋
+    河流:
+      en: river
+      cn: 河流
+    湿地:
+      en: wetland
+      cn: 湿地
+    冰川:
+      en: glacier
+      cn: 冰川
+    椰林:
+      en: palm forest
+      cn: 椰林
+    竹林:
+      en: bamboo forest
+      cn: 竹林
+    樱花林:
+      en: cherry blossom forest
+      cn: 樱花林
+    枫叶林:
+      en: maple forest
+      cn: 枫叶林
+    薰衣草田:
+      en: lavender field
+      cn: 薰衣草田
+    向日葵田:
+      en: sunflower field
+      cn: 向日葵田
+    麦田:
+      en: wheat field
+      cn: 麦田
+  天气现象:
+    晴天:
+      en: sunny day
+      cn: 晴天
+    多云:
+      en: cloudy
+      cn: 多云
+    雨天:
+      en: rainy day
+      cn: 雨天
+    暴风雨:
+      en: thunderstorm
+      cn: 暴风雨
+    雪天:
+      en: snowy day
+      cn: 雪天
+    暴风雪:
+      en: blizzard
+      cn: 暴风雪
+    雾天:
+      en: foggy
+      cn: 雾天
+    彩虹:
+      en: rainbow
+      cn: 彩虹
+    极光:
+      en: aurora borealis
+      cn: 极光
+    星空:
+      en: starry sky
+      cn: 星空
+    银河:
+      en: Milky Way
+      cn: 银河
+    流星雨:
+      en: meteor shower
+      cn: 流星雨
+    日蚀:
+      en: solar eclipse
+      cn: 日蚀
+    月蚀:
+      en: lunar eclipse
+      cn: 月蚀
+    闪电:
+      en: lightning
+      cn: 闪电
+    龙卷风:
+      en: tornado
+      cn: 龙卷风
+  人文建筑:
+    未来城市:
+      en: futuristic city
+      cn: 未来城市
+    古代城堡:
+      en: ancient castle
+      cn: 古代城堡
+    哥特大教堂:
+      en: Gothic cathedral
+      cn: 哥特大教堂
+    日式神社:
+      en: Japanese shrine
+      cn: 日式神社
+    日式庭院:
+      en: Japanese garden
+      cn: 日式庭院
+    中式园林:
+      en: Chinese garden
+      cn: 中式园林
+    中式古建筑:
+      en: traditional Chinese architecture
+      cn: 中式古建筑
+    希腊神殿:
+      en: Greek temple
+      cn: 希腊神殿
+    罗马斗兽场:
+      en: Roman colosseum
+      cn: 罗马斗兽场
+    埃及金字塔:
+      en: Egyptian pyramid
+      cn: 埃及金字塔
+    威尼斯水城:
+      en: Venice canal
+      cn: 威尼斯水城
+    巴黎街道:
+      en: Paris street
+      cn: 巴黎街道
+    中式古镇:
+      en: ancient Chinese town
+      cn: 中式古镇
+    北欧村庄:
+      en: Nordic village
+      cn: 北欧村庄
+    科幻太空站:
+      en: sci-fi space station
+      cn: 科幻太空站
+    赛博朋克街道:
+      en: cyberpunk street
+      cn: 赛博朋克街道
+    蒸汽朋克城市:
+      en: steampunk city
+      cn: 蒸汽朋克城市
+    废墟:
+      en: ruins
+      cn: 废墟
+    地下城:
+      en: underground city
+      cn: 地下城
+    浮空岛:
+      en: floating island
+      cn: 浮空岛
+  室内场景:
+    豪华卧室:
+      en: luxurious bedroom
+      cn: 豪华卧室
+    日式房间:
+      en: Japanese room
+      cn: 日式房间
+    中式客厅:
+      en: Chinese living room
+      cn: 中式客厅
+    欧式古典房间:
+      en: European classical room
+      cn: 欧式古典房间
+    图书馆:
+      en: library
+      cn: 图书馆
+    咖啡厅:
+      en: cafe
+      cn: 咖啡厅
+    酒吧:
+      en: bar
+      cn: 酒吧
+    实验室:
+      en: laboratory
+      cn: 实验室
+    工作室:
+      en: studio
+      cn: 工作室
+    厨房:
+      en: kitchen
+      cn: 厨房
+    浴室:
+      en: bathroom
+      cn: 浴室
+    教室:
+      en: classroom
+      cn: 教室
+    办公室:
+      en: office
+      cn: 办公室
+    医院:
+      en: hospital
+      cn: 医院
+    健身房:
+      en: gym
+      cn: 健身房
+    电影院:
+      en: cinema
+      cn: 电影院
+  特殊场景:
+    海底世界:
+      en: underwater world
+      cn: 海底世界
+    太空:
+      en: outer space
+      cn: 太空
+    异世界:
+      en: fantasy world
+      cn: 异世界
+    梦境:
+      en: dreamscape
+      cn: 梦境
+    地狱:
+      en: underworld
+      cn: 地狱
+    天堂:
+      en: paradise
+      cn: 天堂
+    仙境:
+      en: wonderland
+      cn: 仙境
+    末日废土:
+      en: post-apocalyptic wasteland
+      cn: 末日废土
+    赛博朋克城市:
+      en: cyberpunk metropolis
+      cn: 赛博朋克城市
+    蒸汽朋克世界:
+      en: steampunk world
+      cn: 蒸汽朋克世界
+    魔法学院:
+      en: magic academy
+      cn: 魔法学院
+    龙之巢穴:
+      en: dragon's lair
+      cn: 龙之巢穴
+    精灵森林:
+      en: elven forest
+      cn: 精灵森林
+    亡灵墓地:
+      en: undead graveyard
+      cn: 亡灵墓地
+🎬 电影风格:
+  电影类型:
+    好莱坞大片:
+      en: Hollywood blockbuster style
+      cn: 好莱坞大片
+    独立电影:
+      en: indie film style
+      cn: 独立电影
+    文艺片:
+      en: art house film
+      cn: 文艺片
+    动作片:
+      en: action movie
+      cn: 动作片
+    科幻片:
+      en: sci-fi movie
+      cn: 科幻片
+    恐怖片:
+      en: horror movie
+      cn: 恐怖片
+    爱情片:
+      en: romance movie
+      cn: 爱情片
+    纪录片:
+      en: documentary style
+      cn: 纪录片
+    黑色电影:
+      en: film noir
+      cn: 黑色电影
+    西部片:
+      en: western film
+      cn: 西部片
+  电影画质:
+    电影质感:
+      en: cinematic quality
+      cn: 电影质感
+    35mm胶片:
+      en: 35mm film
+      cn: 35mm胶片
+    70mm IMAX:
+      en: 70mm IMAX
+      cn: 70mm IMAX
+    宽银幕:
+      en: anamorphic widescreen
+      cn: 宽银幕
+    变形宽银幕:
+      en: anamorphic lens
+      cn: 变形宽银幕
+    电影色彩分级:
+      en: cinematic color grading
+      cn: 电影色彩分级
+    电影调色:
+      en: cinematic color correction
+      cn: 电影调色
+    HDR电影:
+      en: HDR cinematic
+      cn: HDR电影
+  电影效果:
+    电影光效:
+      en: cinematic lighting
+      cn: 电影光效
+    电影构图:
+      en: cinematic composition
+      cn: 电影构图
+    电影镜头:
+      en: cinematic shot
+      cn: 电影镜头
+    电影场景:
+      en: cinematic scene
+      cn: 电影场景
+    电影氛围:
+      en: cinematic atmosphere
+      cn: 电影氛围
+    电影感:
+      en: cinematic feel
+      cn: 电影感
+    大片感:
+      en: blockbuster feel
+      cn: 大片感
+    史诗感:
+      en: epic feel
+      cn: 史诗感
+  知名导演风格:
+    诺兰风格:
+      en: Christopher Nolan style
+      cn: 诺兰风格
+    斯皮尔伯格风格:
+      en: Steven Spielberg style
+      cn: 斯皮尔伯格风格
+    库布里克风格:
+      en: Stanley Kubrick style
+      cn: 库布里克风格
+    王家卫风格:
+      en: Wong Kar-wai style
+      cn: 王家卫风格
+    昆汀风格:
+      en: Quentin Tarantino style
+      cn: 昆汀风格
+    大卫芬奇风格:
+      en: David Fincher style
+      cn: 大卫芬奇风格
+    韦斯安德森风格:
+      en: Wes Anderson style
+      cn: 韦斯安德森风格
+    宫崎骏动画风格:
+      en: Hayao Miyazaki animation style
+      cn: 宫崎骏动画风格
+    今敏动画风格:
+      en: Satoshi Kon animation style
+      cn: 今敏动画风格
 👤 人物特征:
   身材体型:
     丰满型:
@@ -1041,167 +2003,6 @@
     透明薄纱:
       en: sheer fabric
       cn: 透明薄纱
-🎨 画面风格:
-  画风类型:
-    扁平插画:
-      en: flat illustration
-      cn: 扁平插画
-    像素风格:
-      en: pixel art
-      cn: 像素风格
-    赛博朋克:
-      en: cyberpunk
-      cn: 赛博朋克
-    蒸汽波:
-      en: vaporwave
-      cn: 蒸汽波
-    波普艺术:
-      en: pop art
-      cn: 波普艺术
-    超现实主义:
-      en: surrealism
-      cn: 超现实主义
-    极简主义:
-      en: minimalism
-      cn: 极简主义
-    装饰艺术:
-      en: art deco
-      cn: 装饰艺术
-    新艺术运动:
-      en: art nouveau
-      cn: 新艺术运动
-    复古风格:
-      en: retro style
-      cn: 复古风格
-    未来主义:
-      en: futurism
-      cn: 未来主义
-    抽象艺术:
-      en: abstract art
-      cn: 抽象艺术
-    表现主义:
-      en: expressionism
-      cn: 表现主义
-    印象派:
-      en: impressionism
-      cn: 印象派
-    写实主义:
-      en: realism
-      cn: 写实主义
-    奇幻风格:
-      en: fantasy style
-      cn: 奇幻风格
-    暗黑风格:
-      en: dark style
-      cn: 暗黑风格
-    童话风格:
-      en: fairy tale style
-      cn: 童话风格
-    唯美风格:
-      en: aesthetic style
-      cn: 唯美风格
-    哥特风格:
-      en: gothic style
-      cn: 哥特风格
-  绘画媒介:
-    油画:
-      en: oil painting
-      cn: 油画
-    水彩:
-      en: watercolor
-      cn: 水彩
-    素描:
-      en: pencil sketch
-      cn: 素描
-    水墨画:
-      en: ink wash painting
-      cn: 水墨画
-    彩铅:
-      en: colored pencil
-      cn: 彩铅
-    蜡笔画:
-      en: crayon drawing
-      cn: 蜡笔画
-    粉彩画:
-      en: pastel drawing
-      cn: 粉彩画
-    丙烯画:
-      en: acrylic painting
-      cn: 丙烯画
-    版画:
-      en: printmaking
-      cn: 版画
-    喷绘:
-      en: spray paint art
-      cn: 喷绘
-    蚀刻:
-      en: etching
-      cn: 蚀刻
-    木刻:
-      en: woodcut
-      cn: 木刻
-  二次元风格:
-    日系动漫:
-      en: Japanese anime style
-      cn: 日系动漫
-    赛璐璐风格:
-      en: cel shading
-      cn: 赛璐璐风格
-    厚涂风格:
-      en: thick paint style
-      cn: 厚涂风格
-    薄涂风格:
-      en: light paint style
-      cn: 薄涂风格
-    线稿风格:
-      en: line art style
-      cn: 线稿风格
-    彩色线稿:
-      en: colored line art
-      cn: 彩色线稿
-    平涂:
-      en: flat coloring
-      cn: 平涂
-    厚涂赛璐璐:
-      en: thick cel shading
-      cn: 厚涂赛璐璐
-    韩漫风格:
-      en: Korean webtoon style
-      cn: 韩漫风格
-    美漫风格:
-      en: American comic style
-      cn: 美漫风格
-  3D风格:
-    3D渲染:
-      en: 3D render
-      cn: 3D渲染
-    等距视角:
-      en: isometric view
-      cn: 等距视角
-    低多边形:
-      en: low poly
-      cn: 低多边形
-    体素风格:
-      en: voxel art
-      cn: 体素风格
-    玻璃拟态:
-      en: glassmorphism
-      cn: 玻璃拟态
-    黏土风格:
-      en: claymation style
-      cn: 黏土风格
-    微缩模型:
-      en: miniature model
-      cn: 微缩模型
-    塑料质感:
-      en: plastic texture
-      cn: 塑料质感
-    金属质感:
-      en: metallic texture
-      cn: 金属质感
-    毛绒质感:
-      en: fluffy texture
-      cn: 毛绒质感
 📷 画面质量:
   画质等级:
     最佳质量:
@@ -1291,150 +2092,6 @@
     光学完美:
       en: optically perfect
       cn: 光学完美
-💡 光影效果:
-  光源类型:
-    自然光:
-      en: natural lighting
-      cn: 自然光
-    人工光:
-      en: artificial lighting
-      cn: 人工光
-    环境光:
-      en: ambient lighting
-      cn: 环境光
-    工作室灯光:
-      en: studio lighting
-      cn: 工作室灯光
-    霓虹灯光:
-      en: neon lights
-      cn: 霓虹灯光
-    LED灯光:
-      en: LED lighting
-      cn: LED灯光
-    烛光:
-      en: candlelight
-      cn: 烛光
-    火光:
-      en: firelight
-      cn: 火光
-    月光:
-      en: moonlight
-      cn: 月光
-    阳光:
-      en: sunlight
-      cn: 阳光
-    星空光线:
-      en: starlight
-      cn: 星空光线
-  光线方向:
-    正面光:
-      en: front lighting
-      cn: 正面光
-    侧光:
-      en: side lighting
-      cn: 侧光
-    逆光:
-      en: backlighting
-      cn: 逆光
-    顶光:
-      en: top lighting
-      cn: 顶光
-    底光:
-      en: under lighting
-      cn: 底光
-    45度光:
-      en: 45 degree lighting
-      cn: 45度光
-    伦勃朗光:
-      en: Rembrandt lighting
-      cn: 伦勃朗光
-    蝴蝶光:
-      en: butterfly lighting
-      cn: 蝴蝶光
-    环形光:
-      en: ring lighting
-      cn: 环形光
-  光线质感:
-    柔和光线:
-      en: soft lighting
-      cn: 柔和光线
-    硬光:
-      en: hard lighting
-      cn: 硬光
-    漫射光:
-      en: diffused lighting
-      cn: 漫射光
-    戏剧性灯光:
-      en: dramatic lighting
-      cn: 戏剧性灯光
-    聚光灯:
-      en: spotlight
-      cn: 聚光灯
-    柔光箱:
-      en: softbox lighting
-      cn: 柔光箱
-    边缘光:
-      en: rim lighting
-      cn: 边缘光
-    轮廓光:
-      en: silhouette lighting
-      cn: 轮廓光
-  特殊光影:
-    体积光:
-      en: volumetric lighting
-      cn: 体积光
-    丁达尔效应:
-      en: Tyndall effect
-      cn: 丁达尔效应
-    光束:
-      en: light beams
-      cn: 光束
-    光线散射:
-      en: light scattering
-      cn: 光线散射
-    焦散光:
-      en: caustics
-      cn: 焦散光
-    全局光照:
-      en: global illumination
-      cn: 全局光照
-    光线追踪:
-      en: ray tracing
-      cn: 光线追踪
-    光影交错:
-      en: interplay of light and shadow
-      cn: 光影交错
-    明暗对比:
-      en: chiaroscuro
-      cn: 明暗对比
-  时间氛围:
-    黄金时刻:
-      en: golden hour
-      cn: 黄金时刻
-    蓝色时刻:
-      en: blue hour
-      cn: 蓝色时刻
-    正午阳光:
-      en: noon sunlight
-      cn: 正午阳光
-    黄昏:
-      en: dusk
-      cn: 黄昏
-    日出:
-      en: sunrise
-      cn: 日出
-    日落:
-      en: sunset
-      cn: 日落
-    夜晚:
-      en: nighttime
-      cn: 夜晚
-    黎明:
-      en: dawn
-      cn: 黎明
-    阴天:
-      en: overcast sky
-      cn: 阴天
 🎭 艺术大师:
   日本艺术家:
     宫崎骏风格:
@@ -1524,270 +2181,6 @@
     吴冠中风格:
       en: Wu Guanzhong style
       cn: 吴冠中风格
-🌍 场景主题:
-  自然景观:
-    森林:
-      en: forest
-      cn: 森林
-    热带雨林:
-      en: tropical rainforest
-      cn: 热带雨林
-    沙漠:
-      en: desert
-      cn: 沙漠
-    草原:
-      en: grassland
-      cn: 草原
-    雪山:
-      en: snow mountain
-      cn: 雪山
-    火山:
-      en: volcano
-      cn: 火山
-    峡谷:
-      en: canyon
-      cn: 峡谷
-    瀑布:
-      en: waterfall
-      cn: 瀑布
-    湖泊:
-      en: lake
-      cn: 湖泊
-    海洋:
-      en: ocean
-      cn: 海洋
-    河流:
-      en: river
-      cn: 河流
-    湿地:
-      en: wetland
-      cn: 湿地
-    冰川:
-      en: glacier
-      cn: 冰川
-    椰林:
-      en: palm forest
-      cn: 椰林
-    竹林:
-      en: bamboo forest
-      cn: 竹林
-    樱花林:
-      en: cherry blossom forest
-      cn: 樱花林
-    枫叶林:
-      en: maple forest
-      cn: 枫叶林
-    薰衣草田:
-      en: lavender field
-      cn: 薰衣草田
-    向日葵田:
-      en: sunflower field
-      cn: 向日葵田
-    麦田:
-      en: wheat field
-      cn: 麦田
-  天气现象:
-    晴天:
-      en: sunny day
-      cn: 晴天
-    多云:
-      en: cloudy
-      cn: 多云
-    雨天:
-      en: rainy day
-      cn: 雨天
-    暴风雨:
-      en: thunderstorm
-      cn: 暴风雨
-    雪天:
-      en: snowy day
-      cn: 雪天
-    暴风雪:
-      en: blizzard
-      cn: 暴风雪
-    雾天:
-      en: foggy
-      cn: 雾天
-    彩虹:
-      en: rainbow
-      cn: 彩虹
-    极光:
-      en: aurora borealis
-      cn: 极光
-    星空:
-      en: starry sky
-      cn: 星空
-    银河:
-      en: Milky Way
-      cn: 银河
-    流星雨:
-      en: meteor shower
-      cn: 流星雨
-    日蚀:
-      en: solar eclipse
-      cn: 日蚀
-    月蚀:
-      en: lunar eclipse
-      cn: 月蚀
-    闪电:
-      en: lightning
-      cn: 闪电
-    龙卷风:
-      en: tornado
-      cn: 龙卷风
-  人文建筑:
-    未来城市:
-      en: futuristic city
-      cn: 未来城市
-    古代城堡:
-      en: ancient castle
-      cn: 古代城堡
-    哥特大教堂:
-      en: Gothic cathedral
-      cn: 哥特大教堂
-    日式神社:
-      en: Japanese shrine
-      cn: 日式神社
-    日式庭院:
-      en: Japanese garden
-      cn: 日式庭院
-    中式园林:
-      en: Chinese garden
-      cn: 中式园林
-    中式古建筑:
-      en: traditional Chinese architecture
-      cn: 中式古建筑
-    希腊神殿:
-      en: Greek temple
-      cn: 希腊神殿
-    罗马斗兽场:
-      en: Roman colosseum
-      cn: 罗马斗兽场
-    埃及金字塔:
-      en: Egyptian pyramid
-      cn: 埃及金字塔
-    威尼斯水城:
-      en: Venice canal
-      cn: 威尼斯水城
-    巴黎街道:
-      en: Paris street
-      cn: 巴黎街道
-    中式古镇:
-      en: ancient Chinese town
-      cn: 中式古镇
-    北欧村庄:
-      en: Nordic village
-      cn: 北欧村庄
-    科幻太空站:
-      en: sci-fi space station
-      cn: 科幻太空站
-    赛博朋克街道:
-      en: cyberpunk street
-      cn: 赛博朋克街道
-    蒸汽朋克城市:
-      en: steampunk city
-      cn: 蒸汽朋克城市
-    废墟:
-      en: ruins
-      cn: 废墟
-    地下城:
-      en: underground city
-      cn: 地下城
-    浮空岛:
-      en: floating island
-      cn: 浮空岛
-  室内场景:
-    豪华卧室:
-      en: luxurious bedroom
-      cn: 豪华卧室
-    日式房间:
-      en: Japanese room
-      cn: 日式房间
-    中式客厅:
-      en: Chinese living room
-      cn: 中式客厅
-    欧式古典房间:
-      en: European classical room
-      cn: 欧式古典房间
-    图书馆:
-      en: library
-      cn: 图书馆
-    咖啡厅:
-      en: cafe
-      cn: 咖啡厅
-    酒吧:
-      en: bar
-      cn: 酒吧
-    实验室:
-      en: laboratory
-      cn: 实验室
-    工作室:
-      en: studio
-      cn: 工作室
-    厨房:
-      en: kitchen
-      cn: 厨房
-    浴室:
-      en: bathroom
-      cn: 浴室
-    教室:
-      en: classroom
-      cn: 教室
-    办公室:
-      en: office
-      cn: 办公室
-    医院:
-      en: hospital
-      cn: 医院
-    健身房:
-      en: gym
-      cn: 健身房
-    电影院:
-      en: cinema
-      cn: 电影院
-  特殊场景:
-    海底世界:
-      en: underwater world
-      cn: 海底世界
-    太空:
-      en: outer space
-      cn: 太空
-    异世界:
-      en: fantasy world
-      cn: 异世界
-    梦境:
-      en: dreamscape
-      cn: 梦境
-    地狱:
-      en: underworld
-      cn: 地狱
-    天堂:
-      en: paradise
-      cn: 天堂
-    仙境:
-      en: wonderland
-      cn: 仙境
-    末日废土:
-      en: post-apocalyptic wasteland
-      cn: 末日废土
-    赛博朋克城市:
-      en: cyberpunk metropolis
-      cn: 赛博朋克城市
-    蒸汽朋克世界:
-      en: steampunk world
-      cn: 蒸汽朋克世界
-    魔法学院:
-      en: magic academy
-      cn: 魔法学院
-    龙之巢穴:
-      en: dragon's lair
-      cn: 龙之巢穴
-    精灵森林:
-      en: elven forest
-      cn: 精灵森林
-    亡灵墓地:
-      en: undead graveyard
-      cn: 亡灵墓地
 ✨ 艺术家与媒介:
   数字艺术风格:
     数字绘画:
@@ -2599,116 +2992,6 @@
     老镜头:
       en: vintage lens
       cn: 老镜头
-🎬 电影风格:
-  电影类型:
-    好莱坞大片:
-      en: Hollywood blockbuster style
-      cn: 好莱坞大片
-    独立电影:
-      en: indie film style
-      cn: 独立电影
-    文艺片:
-      en: art house film
-      cn: 文艺片
-    动作片:
-      en: action movie
-      cn: 动作片
-    科幻片:
-      en: sci-fi movie
-      cn: 科幻片
-    恐怖片:
-      en: horror movie
-      cn: 恐怖片
-    爱情片:
-      en: romance movie
-      cn: 爱情片
-    纪录片:
-      en: documentary style
-      cn: 纪录片
-    黑色电影:
-      en: film noir
-      cn: 黑色电影
-    西部片:
-      en: western film
-      cn: 西部片
-  电影画质:
-    电影质感:
-      en: cinematic quality
-      cn: 电影质感
-    35mm胶片:
-      en: 35mm film
-      cn: 35mm胶片
-    70mm IMAX:
-      en: 70mm IMAX
-      cn: 70mm IMAX
-    宽银幕:
-      en: anamorphic widescreen
-      cn: 宽银幕
-    变形宽银幕:
-      en: anamorphic lens
-      cn: 变形宽银幕
-    电影色彩分级:
-      en: cinematic color grading
-      cn: 电影色彩分级
-    电影调色:
-      en: cinematic color correction
-      cn: 电影调色
-    HDR电影:
-      en: HDR cinematic
-      cn: HDR电影
-  电影效果:
-    电影光效:
-      en: cinematic lighting
-      cn: 电影光效
-    电影构图:
-      en: cinematic composition
-      cn: 电影构图
-    电影镜头:
-      en: cinematic shot
-      cn: 电影镜头
-    电影场景:
-      en: cinematic scene
-      cn: 电影场景
-    电影氛围:
-      en: cinematic atmosphere
-      cn: 电影氛围
-    电影感:
-      en: cinematic feel
-      cn: 电影感
-    大片感:
-      en: blockbuster feel
-      cn: 大片感
-    史诗感:
-      en: epic feel
-      cn: 史诗感
-  知名导演风格:
-    诺兰风格:
-      en: Christopher Nolan style
-      cn: 诺兰风格
-    斯皮尔伯格风格:
-      en: Steven Spielberg style
-      cn: 斯皮尔伯格风格
-    库布里克风格:
-      en: Stanley Kubrick style
-      cn: 库布里克风格
-    王家卫风格:
-      en: Wong Kar-wai style
-      cn: 王家卫风格
-    昆汀风格:
-      en: Quentin Tarantino style
-      cn: 昆汀风格
-    大卫芬奇风格:
-      en: David Fincher style
-      cn: 大卫芬奇风格
-    韦斯安德森风格:
-      en: Wes Anderson style
-      cn: 韦斯安德森风格
-    宫崎骏动画风格:
-      en: Hayao Miyazaki animation style
-      cn: 宫崎骏动画风格
-    今敏动画风格:
-      en: Satoshi Kon animation style
-      cn: 今敏动画风格
 🎮 游戏风格:
   游戏类型:
     RPG游戏:
@@ -2942,6 +3225,362 @@ let moduleSelectedCount = {};
 let scaffoldData = [];
 let userTemplates = [];
 
+// 多行筛选导航状态
+let filterState = {
+    selectedLevel1: null,   // 选中的一级分类
+    selectedLevel2: null,   // 选中的二级分类
+    expandedRows: new Set() // 展开的行
+};
+
+// 构建层级数据结构
+function buildHierarchy(data) {
+    const hierarchy = [];
+    
+    // 一级分类
+    for (const [level1Key, level1Value] of Object.entries(data)) {
+        const level1 = {
+            id: level1Key,
+            name: level1Key,
+            icon: level1Key.match(/^[\u{1F300}-\u{1F9FF}]/u)?.[0] || '📁',
+            children: []
+        };
+        
+        // 快捷脚手架：二级分类下的三级模板
+        if (level1Key === '🚀 快捷脚手架') {
+            // 二级分类
+            for (const [level2Key, level2Value] of Object.entries(level1Value)) {
+                const level2 = {
+                    id: level2Key,
+                    name: level2Key,
+                    icon: level2Key.match(/^[\u{1F300}-\u{1F9FF}]/u)?.[0] || '📁',
+                    children: []
+                };
+                
+                // 三级：模板数据 (level3 = template with en/cn data)
+                for (const [level3Key, level3Value] of Object.entries(level2Value)) {
+                    level2.children.push({
+                        id: level3Key,
+                        name: level3Key,
+                        icon: level3Key.match(/^[\u{1F300}-\u{1F9FF}]/u)?.[0] || '📄',
+                        data: level3Value
+                    });
+                }
+                
+                level1.children.push(level2);
+            }
+        } else {
+            // 其他分类：二级分类
+            for (const [level2Key, level2Value] of Object.entries(level1Value)) {
+                const level2 = {
+                    id: level2Key,
+                    name: level2Key,
+                    icon: level2Key.match(/^[\u{1F300}-\u{1F9FF}]/u)?.[0] || '📁',
+                    children: []
+                };
+                
+                // 三级分类（如果有）
+                if (typeof level2Value === 'object' && !level2Value.en && !level2Value.cn) {
+                    for (const [level3Key, level3Value] of Object.entries(level2Value)) {
+                        level2.children.push({
+                            id: level3Key,
+                            name: level3Key,
+                            icon: level3Key.match(/^[\u{1F300}-\u{1F9FF}]/u)?.[0] || '📄',
+                            data: level3Value
+                        });
+                    }
+                } else {
+                    // 没有三级，直接是标签数据
+                    level2.data = level2Value;
+                }
+                
+                level1.children.push(level2);
+            }
+        }
+        
+        hierarchy.push(level1);
+    }
+    
+    return hierarchy;
+}
+
+// 计算节点下的标签总数
+function countTags(node) {
+    let count = 0;
+    if (node.data && node.data.en) {
+        count = 1;
+    }
+    if (node.children) {
+        node.children.forEach(child => {
+            count += countTags(child);
+        });
+    }
+    return count;
+}
+
+// 渲染多行筛选导航
+function renderFilterNav() {
+    const container = document.getElementById('filterNav');
+    container.innerHTML = '';
+    
+    const hierarchy = buildHierarchy(promptData);
+    
+    // 第一行：一级分类
+    const row1 = document.createElement('div');
+    row1.className = 'filter-row';
+    
+    const label1 = document.createElement('span');
+    label1.className = 'filter-label';
+    label1.textContent = '分类：';
+    row1.appendChild(label1);
+    
+    const options1 = document.createElement('div');
+    options1.className = 'filter-options';
+    
+    // "全部"选项
+    const allOption = document.createElement('span');
+    allOption.className = `filter-option ${!filterState.selectedLevel1 ? 'active' : ''}`;
+    allOption.textContent = '全部';
+    allOption.onclick = () => selectLevel1(null);
+    options1.appendChild(allOption);
+    
+    // 显示前8个一级分类
+    const visibleItems1 = hierarchy.slice(0, 8);
+    const extraItems1 = hierarchy.slice(8);
+    
+    visibleItems1.forEach(item => {
+        const option = document.createElement('span');
+        option.className = `filter-option ${filterState.selectedLevel1 === item.id ? 'active' : ''}`;
+        option.textContent = item.name;
+        option.onclick = () => selectLevel1(item);
+        options1.appendChild(option);
+    });
+    
+    // 如果有更多，显示"更多"按钮
+    if (extraItems1.length > 0) {
+        const moreBtn = document.createElement('span');
+        moreBtn.className = `filter-more ${filterState.expandedRows.has('level1') ? 'expanded' : ''}`;
+        moreBtn.textContent = `更多${extraItems1.length}项`;
+        moreBtn.onclick = () => toggleRow('level1');
+        options1.appendChild(moreBtn);
+        
+        // 额外选项容器
+        const extraContainer = document.createElement('div');
+        extraContainer.className = `filter-options filter-extra ${filterState.expandedRows.has('level1') ? 'show' : ''}`;
+        extraContainer.id = 'level1-extra';
+        
+        extraItems1.forEach(item => {
+            const option = document.createElement('span');
+            option.className = `filter-option ${filterState.selectedLevel1 === item.id ? 'active' : ''}`;
+            option.textContent = item.name;
+            option.onclick = () => selectLevel1(item);
+            extraContainer.appendChild(option);
+        });
+        
+        options1.appendChild(extraContainer);
+    }
+    
+    row1.appendChild(options1);
+    container.appendChild(row1);
+    
+    // 第二行：二级分类（如果选中了一级分类）
+    if (filterState.selectedLevel1) {
+        const selectedLevel1 = hierarchy.find(item => item.id === filterState.selectedLevel1);
+        if (selectedLevel1 && selectedLevel1.children.length > 0) {
+            const row2 = document.createElement('div');
+            row2.className = 'filter-row';
+            
+            const label2 = document.createElement('span');
+            label2.className = 'filter-label';
+            label2.textContent = '子类：';
+            row2.appendChild(label2);
+            
+            const options2 = document.createElement('div');
+            options2.className = 'filter-options';
+            
+            // "全部"选项
+            const allOption2 = document.createElement('span');
+            allOption2.className = `filter-option ${!filterState.selectedLevel2 ? 'active' : ''}`;
+            allOption2.textContent = '全部';
+            allOption2.onclick = () => selectLevel2(null);
+            options2.appendChild(allOption2);
+            
+            // 显示前10个二级分类
+            const visibleItems2 = selectedLevel1.children.slice(0, 10);
+            const extraItems2 = selectedLevel1.children.slice(10);
+            
+            visibleItems2.forEach(item => {
+                const option = document.createElement('span');
+                option.className = `filter-option ${filterState.selectedLevel2 === item.id ? 'active' : ''}`;
+                option.dataset.level2Key = item.id;
+                // 计算此子类模块中的选中标签数
+                const moduleKey = `${filterState.selectedLevel1}|${item.id}`;
+                const moduleEl = document.querySelector(`.module[data-module-key="${moduleKey}"]`);
+                const count = moduleEl ? moduleEl.querySelectorAll('.prompt-tag.selected').length : 0;
+                option.innerHTML = count > 0 
+                    ? `${item.name} <span class="selected-count">${count}</span>` 
+                    : item.name;
+                option.onclick = () => selectLevel2(item);
+                options2.appendChild(option);
+            });
+            
+            // 如果有更多，显示"更多"按钮
+            if (extraItems2.length > 0) {
+                const moreBtn2 = document.createElement('span');
+                moreBtn2.className = `filter-more ${filterState.expandedRows.has('level2') ? 'expanded' : ''}`;
+                moreBtn2.textContent = `更多${extraItems2.length}项`;
+                moreBtn2.onclick = () => toggleRow('level2');
+                options2.appendChild(moreBtn2);
+                
+                // 额外选项容器
+                const extraContainer2 = document.createElement('div');
+                extraContainer2.className = `filter-options filter-extra ${filterState.expandedRows.has('level2') ? 'show' : ''}`;
+                extraContainer2.id = 'level2-extra';
+                
+                extraItems2.forEach(item => {
+                    const option = document.createElement('span');
+                    option.className = `filter-option ${filterState.selectedLevel2 === item.id ? 'active' : ''}`;
+                    option.dataset.level2Key = item.id;
+                    // 计算此子类模块中的选中标签数
+                    const moduleKey = `${filterState.selectedLevel1}|${item.id}`;
+                    const moduleEl = document.querySelector(`.module[data-module-key="${moduleKey}"]`);
+                    const count = moduleEl ? moduleEl.querySelectorAll('.prompt-tag.selected').length : 0;
+                    option.innerHTML = count > 0 
+                        ? `${item.name} <span class="selected-count">${count}</span>` 
+                        : item.name;
+                    option.onclick = () => selectLevel2(item);
+                    extraContainer2.appendChild(option);
+                });
+                
+                options2.appendChild(extraContainer2);
+            }
+            
+            row2.appendChild(options2);
+            container.appendChild(row2);
+        }
+    }
+}
+
+// 展开/收起行
+function toggleRow(rowId) {
+    if (filterState.expandedRows.has(rowId)) {
+        filterState.expandedRows.delete(rowId);
+    } else {
+        filterState.expandedRows.add(rowId);
+    }
+    renderFilterNav();
+}
+
+// 选择一级分类
+function selectLevel1(item) {
+    filterState.selectedLevel1 = item ? item.id : null;
+    filterState.selectedLevel2 = null; // 重置二级分类
+    renderFilterNav();
+    applyFilterNav();
+}
+
+// 选择二级分类
+function selectLevel2(item) {
+    filterState.selectedLevel2 = item ? item.id : null;
+    renderFilterNav();
+    applyFilterNav();
+}
+
+// 重置筛选
+function resetFilterNav() {
+    filterState.selectedLevel1 = null;
+    filterState.selectedLevel2 = null;
+    filterState.expandedRows.clear();
+    renderFilterNav();
+    applyFilterNav();
+}
+
+// 应用筛选导航
+function applyFilterNav() {
+    const allModules = document.querySelectorAll('.module');
+    const allTags = document.querySelectorAll('.prompt-tag');
+    const allScaffoldCards = document.querySelectorAll('.scaffold-card');
+    
+    // 如果没有选择任何筛选条件，显示所有
+    if (!filterState.selectedLevel1 && !filterState.selectedLevel2) {
+        allModules.forEach(module => module.style.display = '');
+        allTags.forEach(tag => tag.classList.remove('hidden'));
+        allScaffoldCards.forEach(card => card.classList.remove('hidden'));
+        return;
+    }
+    
+    // 构建层级数据
+    const hierarchy = buildHierarchy(promptData);
+    
+    // 收集所有匹配的标签
+    const matchedTags = new Set();
+    
+    // 递归收集匹配的数据
+    function collectMatches(node) {
+        if (node.data && node.data.en) {
+            matchedTags.add(node.name);
+        }
+        if (node.children) {
+            node.children.forEach(child => collectMatches(child));
+        }
+    }
+    
+    // 根据筛选条件收集匹配项
+    if (filterState.selectedLevel1) {
+        const level1Item = hierarchy.find(item => item.id === filterState.selectedLevel1);
+        if (level1Item) {
+            if (filterState.selectedLevel2) {
+                // 选中了一级和二级分类
+                const level2Item = level1Item.children.find(item => item.id === filterState.selectedLevel2);
+                if (level2Item) {
+                    collectMatches(level2Item);
+                }
+            } else {
+                // 只选中了一级分类
+                collectMatches(level1Item);
+            }
+        }
+    }
+    
+    // 应用筛选
+    allTags.forEach(tag => {
+        const tagName = tag.dataset.cn || tag.textContent;
+        if (matchedTags.has(tagName)) {
+            tag.classList.remove('hidden');
+        } else {
+            tag.classList.add('hidden');
+        }
+    });
+    
+    allScaffoldCards.forEach(card => {
+        const cardTitle = card.querySelector('.scaffold-card-title');
+        if (cardTitle && matchedTags.has(cardTitle.textContent)) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+    
+    // 显示/隐藏模块 - 使用 data-level1 属性进行模块级过滤
+    allModules.forEach(module => {
+        const moduleLevel1 = module.dataset.level1;
+        
+        // 如果选中了一级分类，只显示属于该分类的模块
+        if (filterState.selectedLevel1 && moduleLevel1 !== filterState.selectedLevel1) {
+            module.style.display = 'none';
+            return;
+        }
+        
+        // 对于属于选中分类的模块，根据标签/卡片可见性决定是否显示
+        const visibleTags = module.querySelectorAll('.prompt-tag:not(.hidden)');
+        const visibleCards = module.querySelectorAll('.scaffold-card:not(.hidden)');
+        if (visibleTags.length > 0 || visibleCards.length > 0) {
+            module.style.display = '';
+        } else {
+            module.style.display = 'none';
+        }
+    });
+}
+
 // 从 yamlSelfData 加载初始数据，再与 localStorage 合并
 function loadUserTemplates() {
     userTemplates = [];
@@ -3096,33 +3735,23 @@ function renderModules() {
         "浮世绘风格": "https://images.unsplash.com/photo-1528164344705-47542687000d?w=400&h=200&fit=crop"
     };
     
-    // 创建tab导航
-    const tabsNav = document.createElement('div');
-    tabsNav.className = 'tabs-nav';
-    
-    // 创建tab内容容器
-    const tabsContent = document.createElement('div');
-    tabsContent.className = 'tab-content';
-    
-    let isFirstTab = true;
-    
-    // 定义新的排序顺序
+    // 定义模块排序顺序
     const orderedKeys = [
         "🚀 快捷脚手架",
-        "📷 画面质量",
+        "🎨 画面风格",
         "💡 光影效果",
-        "🎭 艺术大师",
         "🌍 场景主题",
+        "🎬 电影风格",
+        "📷 画面质量",
+        "🎭 艺术大师",
         "👤 人物特征",
         "👗 服装服饰",
-        "🎨 画面风格",
         "✨ 艺术家与媒介",
         "🎨 色彩氛围",
         "📐 构图视角",
         "🌟 特效氛围",
         "🖌️ 细节修饰",
         "📷 摄影参数",
-        "🎬 电影风格",
         "🎮 游戏风格",
         "🔮 特殊效果"
     ];
@@ -3132,176 +3761,21 @@ function renderModules() {
         .filter(key => promptData[key])
         .map(key => [key, promptData[key]]);
     
-    // 首先创建"全部"Tab
-    const allTabBtn = document.createElement('button');
-    allTabBtn.className = 'tab-btn active';
-    allTabBtn.dataset.tab = 'tab-all';
-    allTabBtn.innerHTML = `
-        <span class="tab-btn-icon">📋</span>
-        <span>全部</span>
-        <span class="tab-btn-count">${Object.values(promptData).reduce((sum, categories) => sum + Object.values(categories).reduce((s, cat) => s + Object.keys(cat).length, 0), 0)}</span>
-        <span class="tab-btn-selected" id="tab-all-badge">0</span>
-    `;
-    allTabBtn.onclick = () => switchTab('tab-all');
-    tabsNav.appendChild(allTabBtn);
+    let scaffoldIndex = 0;
     
-    // 创建"全部"Tab面板
-    const allTabPanel = document.createElement('div');
-    allTabPanel.className = 'tab-panel active';
-    allTabPanel.id = 'tab-all';
-    moduleSelectedCount['tab-all'] = 0;
-    
-    let allModulesHTML = `
-        <div class="tab-panel-header">
-            <span class="tab-panel-title">📋 全部提示词</span>
-            <button class="tab-clear-btn" id="tab-all-clear-btn" onclick="clearModulePrompts('tab-all')">🗑️ 清除此模块 <span class="clear-count">0</span></button>
-        </div>
-    `;
-    
-    // 在"全部"Tab中添加所有模块内容
+    // 遍历所有模块
     for (const [moduleName, categories] of moduleEntries) {
         const icon = moduleName.split(' ')[0];
         const title = moduleName.split(' ').slice(1).join(' ');
-        
-        if (moduleName === "🚀 快捷脚手架") {
-            // 脚手架模块 - 单选卡片（自定义模板优先显示）
-            const baseIdx = Object.values(promptData["🚀 快捷脚手架"]).reduce((sum, p) => sum + Object.keys(p).length, 0);
-            let scaffoldIndex = 0;
-            
-            // 自定义模板（置顶，为空则不展示）
-            if (userTemplates.length > 0) {
-                const userCardsHTML = userTemplates.map((tpl, i) => {
-                    const idx = baseIdx + i;
-                    const imgUrl = tpl.imageUrl || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
-                    return `<div class="scaffold-card" data-idx="${idx}" onclick="applyScaffoldByIndex(${idx})">
-                        <button class="card-del-btn" data-tpl-idx="${i}" title="删除此模板">✕</button>
-                        <img class="scaffold-card-image" src="${imgUrl}" alt="${tpl.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'">
-                        <div class="scaffold-card-header">
-                            <span class="scaffold-card-icon">📌</span>
-                            <span class="scaffold-card-title">${tpl.name}</span>
-                        </div>
-                        ${tpl.description ? `<div class="scaffold-card-footer" style="color:#888;font-size:0.72em;">${tpl.description}</div>` : ''}
-                        <div class="card-prompt-body">${tpl.cn}</div>
-                        <div class="scaffold-card-footer">👆 点击应用此模板</div>
-                    </div>`;
-                }).join('');
-                allModulesHTML += `
-                    <div class="module all-scaffold-module">
-                        <div class="module-header" onclick="toggleModule(this)">
-                            <span class="module-icon">📌</span>
-                            <span class="module-title">自定义模板</span>
-                            <span class="module-count">${userTemplates.length}个</span>
-                            <span class="module-arrow">▼</span>
-                        </div>
-                        <div class="module-body">
-                            <div class="scaffold-container">${userCardsHTML}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            for (const [catName, prompts] of Object.entries(categories)) {
-                const cardsHTML = Object.entries(prompts).map(([cn, data]) => {
-                    const idx = scaffoldIndex++;
-                    const tagsPreview = data.cn.split('，').slice(0, 3).map(tag => `<span class="scaffold-tag">${tag}</span>`).join('');
-                    const imageUrl = previewImages[cn] || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
-                    return `<div class="scaffold-card" data-idx="${idx}" data-cn="${cn}" onclick="applyScaffoldByIndex(${idx})">
-                        <img class="scaffold-card-image" src="${imageUrl}" alt="${cn}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop'">
-                        <div class="scaffold-card-header">
-                            <span class="scaffold-card-icon">✨</span>
-                            <span class="scaffold-card-title">${cn}</span>
-                        </div>
-                        <div class="scaffold-card-tags">${tagsPreview}</div>
-                        <div class="scaffold-card-footer">👆 点击应用此模板</div>
-                    </div>`;
-                }).join('');
-                
-                allModulesHTML += `
-                    <div class="module all-scaffold-module">
-                        <div class="module-header" onclick="toggleModule(this)">
-                            <span class="module-icon">${icon}</span>
-                            <span class="module-title">${title} - ${catName}</span>
-                            <span class="module-count">${Object.keys(prompts).length}个模板</span>
-                            <span class="module-arrow">▼</span>
-                        </div>
-                        <div class="module-body">
-                            <div class="scaffold-container">${cardsHTML}</div>
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            // 其他模块 - 多选标签
-            for (const [catName, prompts] of Object.entries(categories)) {
-                const tagsHTML = Object.entries(prompts).map(([cn, data]) => 
-                    `<span class="prompt-tag" data-cn="${cn}" data-en="${data.en}" data-module="${moduleName}" onclick="togglePrompt(this, '${cn}', 'tab-all')">${cn}</span>`
-                ).join('');
-                
-                allModulesHTML += `
-                    <div class="module">
-                        <div class="module-header" onclick="toggleModule(this)">
-                            <span class="module-icon">●</span>
-                            <span class="module-title">${catName}</span>
-                            <span class="module-count">${Object.keys(prompts).length}个</span>
-                            <span class="module-arrow">▼</span>
-                        </div>
-                        <div class="module-body">
-                            <div class="tags-container">${tagsHTML}</div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-    }
-    
-    allTabPanel.innerHTML = allModulesHTML;
-    tabsContent.appendChild(allTabPanel);
-    
-    isFirstTab = false;
-    
-    // 然后创建其他单独的Tab
-    for (const [moduleName, categories] of moduleEntries) {
-        const icon = moduleName.split(' ')[0];
-        const title = moduleName.split(' ').slice(1).join(' ');
-        const totalTags = Object.values(categories).reduce((sum, cat) => sum + Object.keys(cat).length, 0);
-        const tabId = `tab-${moduleName.replace(/\s+/g, '-')}`;
-        moduleSelectedCount[tabId] = 0;
-        
-        // 创建tab按钮
-        const tabBtn = document.createElement('button');
-        tabBtn.className = `tab-btn ${isFirstTab ? 'active' : ''}`;
-        tabBtn.dataset.tab = tabId;
-        tabBtn.innerHTML = `
-            <span class="tab-btn-icon">${icon}</span>
-            <span>${title}</span>
-            <span class="tab-btn-count">${totalTags}</span>
-            <span class="tab-btn-selected" id="${tabId}-badge">0</span>
-        `;
-        tabBtn.onclick = () => switchTab(tabId);
-        tabsNav.appendChild(tabBtn);
-        
-        // 创建tab面板
-        const tabPanel = document.createElement('div');
-        tabPanel.className = `tab-panel ${isFirstTab ? 'active' : ''}`;
-        tabPanel.id = tabId;
-        
-        // 在面板内添加模块（子分类）
-        let modulesHTML = `
-            <div class="tab-panel-header">
-                <span class="tab-panel-title">${icon} ${title}</span>
-                <button class="tab-clear-btn" id="${tabId}-clear-btn" onclick="clearModulePrompts('${tabId}')">🗑️ 清除此模块 <span class="clear-count">0</span></button>
-            </div>
-        `;
         
         // 特殊处理快捷脚手架模块 - 显示为卡片
         if (moduleName === "🚀 快捷脚手架") {
-            const baseIdx = Object.values(promptData["🚀 快捷脚手架"]).reduce((sum, p) => sum + Object.keys(p).length, 0);
-            let scaffoldIndex = 0;
+            let localScaffoldIndex = 0;
             
             // 自定义模板（置顶，为空则不展示）
             if (userTemplates.length > 0) {
                 const userCardsHTML = userTemplates.map((tpl, i) => {
-                    const idx = baseIdx + i;
+                    const idx = localScaffoldIndex++;
                     const imgUrl = tpl.imageUrl || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
                     return `<div class="scaffold-card" data-idx="${idx}" onclick="applyScaffoldByIndex(${idx})">
                         <button class="card-del-btn" data-tpl-idx="${i}" title="删除此模板">✕</button>
@@ -3315,11 +3789,13 @@ function renderModules() {
                         <div class="scaffold-card-footer">👆 点击应用此模板</div>
                     </div>`;
                 }).join('');
-                modulesHTML += `
-                    <div class="module">
+                
+                container.innerHTML += `
+                    <div class="module" data-level1="🚀 快捷脚手架" data-module-key="🚀 快捷脚手架|自定义模板">
                         <div class="module-header" onclick="toggleModule(this)">
-                            <span class="module-icon">●</span>
-                            <span class="module-title">📌 自定义模板</span>
+                            <span class="module-icon">📌</span>
+                            <span class="module-title">自定义模板</span>
+                            <span class="module-count-selected"></span>
                             <span class="module-count">${userTemplates.length}个</span>
                             <span class="module-arrow">▼</span>
                         </div>
@@ -3332,7 +3808,7 @@ function renderModules() {
             
             for (const [catName, prompts] of Object.entries(categories)) {
                 const cardsHTML = Object.entries(prompts).map(([cn, data]) => {
-                    const idx = scaffoldIndex++;
+                    const idx = localScaffoldIndex++;
                     const tagsPreview = data.cn.split('，').slice(0, 4).map(tag => `<span class="scaffold-tag">${tag}</span>`).join('');
                     const imageUrl = previewImages[cn] || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop";
                     return `<div class="scaffold-card" data-idx="${idx}" data-cn="${cn}" onclick="applyScaffoldByIndex(${idx})">
@@ -3346,11 +3822,12 @@ function renderModules() {
                     </div>`;
                 }).join('');
                 
-                modulesHTML += `
-                    <div class="module">
+                container.innerHTML += `
+                    <div class="module" data-level1="🚀 快捷脚手架" data-module-key="🚀 快捷脚手架|${catName}">
                         <div class="module-header" onclick="toggleModule(this)">
                             <span class="module-icon">●</span>
                             <span class="module-title">${catName}</span>
+                            <span class="module-count-selected"></span>
                             <span class="module-count">${Object.keys(prompts).length}个模板</span>
                             <span class="module-arrow">▼</span>
                         </div>
@@ -3364,14 +3841,15 @@ function renderModules() {
             // 其他模块正常显示
             for (const [catName, prompts] of Object.entries(categories)) {
                 const tagsHTML = Object.entries(prompts).map(([cn, data]) => 
-                    `<span class="prompt-tag" data-cn="${cn}" data-en="${data.en}" onclick="togglePrompt(this, '${cn}', '${tabId}')">${cn}</span>`
+                    `<span class="prompt-tag" data-cn="${cn}" data-en="${data.en}" onclick="togglePrompt(this, '${cn}')">${cn}</span>`
                 ).join('');
                 
-                modulesHTML += `
-                    <div class="module">
+                container.innerHTML += `
+                    <div class="module" data-level1="${moduleName}" data-module-key="${moduleName}|${catName}">
                         <div class="module-header" onclick="toggleModule(this)">
                             <span class="module-icon">●</span>
                             <span class="module-title">${catName}</span>
+                            <span class="module-count-selected"></span>
                             <span class="module-count">${Object.keys(prompts).length}个</span>
                             <span class="module-arrow">▼</span>
                         </div>
@@ -3382,15 +3860,7 @@ function renderModules() {
                 `;
             }
         }
-        
-        tabPanel.innerHTML = modulesHTML;
-        tabsContent.appendChild(tabPanel);
-        
-        isFirstTab = false;
     }
-    
-    container.appendChild(tabsNav);
-    container.appendChild(tabsContent);
     
     // 自定义模板删除按钮事件（事件委托）
     container.addEventListener('click', function(e) {
@@ -3407,6 +3877,9 @@ function renderModules() {
             showToast(`已删除模板「${tpl.name}」`);
         }
     });
+    
+    // 重新计算所有模块的选中计数徽章
+    updateAllModuleBadges();
 }
 
 function clearModulePrompts(tabId) {
@@ -3507,10 +3980,28 @@ function togglePrompt(element, cn, tabId) {
         }
     }
     
+    // 更新父模块的选中计数徽章
+    const moduleEl = element.closest('.module');
+    if (moduleEl) {
+        const key = moduleEl.dataset.moduleKey;
+        if (key) {
+            // 重新计算此模块下选中的标签数
+            const selectedInModule = moduleEl.querySelectorAll('.prompt-tag.selected').length;
+            moduleSelectedCount[key] = selectedInModule;
+            const badge = moduleEl.querySelector('.module-count-selected');
+            if (badge) {
+                badge.textContent = selectedInModule > 0 ? `${selectedInModule}` : '';
+                badge.classList.toggle('has-selected', selectedInModule > 0);
+            }
+        }
+    }
+    
     if (tabId) {
         updateModuleBadge(tabId);
     }
     updateResult();
+    // 更新筛选导航栏二级选项的选中计数
+    updateLevel2Counts();
 }
 
 function applyScaffold(enText, cnText) {
@@ -3526,6 +4017,12 @@ function applyScaffold(enText, cnText) {
             moduleSelectedCount[key] = 0;
             updateModuleBadge(key);
         }
+    });
+    
+    // 重置所有模块的选中计数徽章
+    document.querySelectorAll('.module-count-selected').forEach(badge => {
+        badge.textContent = '';
+        badge.classList.remove('has-selected');
     });
     
     // 解析并添加新的提示词
@@ -3563,6 +4060,45 @@ function updateModuleBadge(tabId) {
         // 根据数量调整按钮样式
         clearBtn.classList.toggle('has-items', count > 0);
     }
+}
+
+// 更新所有模块的选中计数徽章
+function updateAllModuleBadges() {
+    document.querySelectorAll('.module').forEach(module => {
+        const badge = module.querySelector('.module-count-selected');
+        if (!badge) return;
+        const selectedCount = module.querySelectorAll('.prompt-tag.selected').length;
+        if (selectedCount > 0) {
+            badge.textContent = selectedCount;
+            badge.classList.add('has-selected');
+        } else {
+            badge.textContent = '';
+            badge.classList.remove('has-selected');
+        }
+    });
+    // 同时更新筛选导航栏的二级计数
+    updateLevel2Counts();
+}
+
+// 更新筛选导航栏中二级选项的选中计数
+function updateLevel2Counts() {
+    if (!filterState.selectedLevel1) return;
+    const level2Options = document.querySelectorAll('.filter-option[data-level2-key]');
+    level2Options.forEach(option => {
+        const level2Key = option.dataset.level2Key;
+        if (!level2Key) return;
+        const moduleKey = `${filterState.selectedLevel1}|${level2Key}`;
+        const moduleEl = document.querySelector(`.module[data-module-key="${moduleKey}"]`);
+        const count = moduleEl ? moduleEl.querySelectorAll('.prompt-tag.selected').length : 0;
+        const nameText = option.childNodes[0]?.textContent || level2Key;
+        if (count > 0) {
+            option.innerHTML = `${nameText} <span class="selected-count">${count}</span>`;
+        } else {
+            // 只保留文本，移除计数
+            const text = option.textContent.replace(/\s*\d+$/, '');
+            option.textContent = level2Key;
+        }
+    });
 }
 
 function updateResult() {
@@ -3684,6 +4220,15 @@ function clearAll() {
         moduleSelectedCount[tabId] = 0;
         updateModuleBadge(tabId);
     });
+    
+    // 重置所有模块的选中计数徽章
+    document.querySelectorAll('.module-count-selected').forEach(badge => {
+        badge.textContent = '';
+        badge.classList.remove('has-selected');
+    });
+    
+    // 更新筛选导航栏二级选项的选中计数
+    updateLevel2Counts();
     
     document.getElementById('customInput').value = '';
     document.getElementById('negativeInput').value = '';
@@ -3819,6 +4364,9 @@ function initApp() {
         }
         promptData = jsyaml.load(yamlData.textContent);
         renderModules();
+        
+        // 初始化多行筛选导航组件
+        renderFilterNav();
     } catch (e) {
         console.error('Failed to load prompt data:', e);
         document.getElementById('resultArea').innerHTML = '<span class="result-empty" style="color:#ff5050">⚠️ 加载提示词数据失败</span>';

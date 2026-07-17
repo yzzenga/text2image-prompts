@@ -15,6 +15,36 @@
     梦幻人像:
       en: ethereal portrait, soft dreamy lighting, bokeh background, pastel color palette, romantic atmosphere, lens flare, dreamlike quality
       cn: 空灵人像，柔和梦幻灯光，散景背景，粉彩色调，浪漫氛围，镜头光晕，梦幻质感
+    韩系清纯:
+      en: Korean style portrait, clean aesthetic, soft natural light, minimal makeup, pure expression, pastel tones, simple background, fresh look
+      cn: 韩系人像，简洁美学，柔和自然光，淡妆，纯真表情，粉彩色调，简洁背景，清新look
+    欧美性感:
+      en: sexy portrait, dramatic lighting, confident pose, glamorous makeup, bold colors, fashion editorial, intense gaze, high fashion
+      cn: 性感人像，戏剧性灯光，自信姿势，迷人妆容，大胆色彩，时尚大片，强烈眼神，高级时装
+    复古港风:
+      en: Hong Kong retro style, 90s aesthetic, neon lights, moody atmosphere, film grain, vintage colors, urban night, cinematic feel
+      cn: 港风复古，90年代美学，霓虹灯，忧郁氛围，胶片颗粒，复古色彩，城市夜景，电影感
+    日系森女:
+      en: Mori girl style, natural woodland setting, earth tones, flowing fabrics, gentle expression, soft focus, ethereal atmosphere, organic feel
+      cn: 日系森女风，自然林地场景，大地色系，飘逸面料，温柔表情，柔和对焦，空灵氛围，有机质感
+    欧美街头:
+      en: urban street portrait, gritty texture, natural light, candid pose, city background, documentary style, authentic emotion, raw beauty
+      cn: 城市街头人像，粗粝质感，自然光线，抓拍姿势，城市背景，纪录片风格，真实情感，原始美感
+    复古学院:
+      en: preppy style, school uniform, vintage aesthetic, soft lighting, youthful expression, pastel colors, nostalgic feel, classic look
+      cn: 学院风，校服，复古美学，柔和灯光，青春表情，粉彩色调，怀旧感，经典look
+    日系清纯:
+      en: Japanese pure style, innocent expression, soft lighting, white dress, natural beauty, dreamy atmosphere, gentle smile, angelic look
+      cn: 日系清纯，纯真表情，柔和灯光，白色连衣裙，自然美，梦幻氛围，温柔微笑，天使look
+    韩系时尚:
+      en: Korean fashion portrait, trendy outfit, modern styling, confident pose, urban background, stylish look, current fashion, K-beauty
+      cn: 韩系时尚，潮流穿搭，现代造型，自信姿势，城市背景，时尚look，当下流行，韩式美妆
+    欧美复古:
+      en: vintage Western portrait, retro fashion, classic makeup, elegant pose, timeless beauty, film grain, warm tones, old Hollywood glamour
+      cn: 欧美复古，复古时尚，经典妆容，优雅姿势，永恒美，胶片颗粒，暖色调，老好莱坞魅力
+    日系文艺:
+      en: Japanese artistic style, creative composition, unique perspective, artistic lighting, expressive mood, avant-garde, experimental, fine art
+      cn: 日系文艺，创意构图，独特视角，艺术灯光，表现情绪，前卫，实验性，艺术品质
   风景摄影:
     黄金时刻:
       en: golden hour lighting, dramatic sky, warm orange tones, long exposure, landscape photography, vivid colors, professional composition, 24mm wide angle
@@ -31,6 +61,33 @@
     海景日落:
       en: ocean sunset, dramatic clouds, golden reflections on water, long exposure silky water, warm color palette, peaceful atmosphere
       cn: 海边日落，戏剧性云层，水面金色倒影，长曝光丝滑水面，暖色调，宁静氛围
+    秋色红叶:
+      en: autumn foliage, vibrant red and orange leaves, forest path, soft sunlight, warm tones, peaceful atmosphere, nature walk, seasonal beauty
+      cn: 秋季红叶，鲜艳红橙色叶子，森林小径，柔和阳光，暖色调，宁静氛围，自然漫步，季节性美景
+    雪山倒影:
+      en: snow mountain reflection, crystal clear lake, mirror image, pristine wilderness, cold tones, majestic scenery, alpine landscape, winter paradise
+      cn: 雪山倒影，清澈湖泊，镜像倒影，原始荒野，冷色调，宏伟景色，高山景观，冬季天堂
+    热带海滩:
+      en: tropical beach paradise, turquoise water, white sand, palm trees, sunset glow, vacation vibes, idyllic scenery, Caribbean style
+      cn: 热带海滩天堂，绿松石色海水，白色沙滩，棕榈树，日落余晖，度假氛围，田园风光，加勒比风格
+    田园牧歌:
+      en: pastoral countryside, rolling hills, golden wheat fields, rustic farmhouse, warm sunset, peaceful rural life, European countryside, romantic landscape
+      cn: 田园风光，连绵山丘，金色麦田，质朴农舍，温暖日落，宁静乡村生活，欧洲乡村，浪漫风景
+    湖光山色:
+      en: lake and mountain scenery, serene water surface, surrounding peaks, morning mist, tranquil atmosphere, landscape reflection, nature harmony, peaceful retreat
+      cn: 湖光山色，平静水面，环绕山峰，晨雾，宁静氛围，风景倒影，自然和谐，宁静 retreat
+    沙漠骆驼:
+      en: desert landscape, camel caravan, golden sand dunes, dramatic sky, vast emptiness, adventure atmosphere, Sahara style, exotic journey
+      cn: 沙漠景观，骆驼商队，金色沙丘，戏剧性天空，广阔空旷，冒险氛围，撒哈拉风格，异域旅程
+    冰川极光:
+      en: glacier aurora, northern lights, icy landscape, dramatic sky, ethereal glow, Arctic wilderness, frozen paradise, magical winter scene
+      cn: 冰川极光，北极光，冰冻景观，戏剧性天空，空灵光芒，北极荒野，冰冻天堂，神奇冬日景象
+    城市夜景:
+      en: city nightscape, glowing lights, urban skyline, reflective water, modern architecture, vibrant atmosphere, metropolitan beauty, nightscape photography
+      cn: 城市夜景，闪烁灯光，城市天际线，水面倒影，现代建筑，活力氛围，大都市美景，夜景摄影
+    云海日出:
+      en: sea of clouds sunrise, dramatic sky, golden light breaking through, mountain peaks above clouds, epic scenery, atmospheric phenomenon, heavenly view, breathtaking panorama
+      cn: 云海日出，戏剧性天空，金色光线穿透，云层之上的山峰，史诗级景色，大气现象，天堂视角，令人叹为观止的全景
   产品摄影:
     极简产品:
       en: product photography, minimalist white background, studio lighting, soft shadows, commercial quality, clean composition, sharp focus, high-end look
@@ -47,6 +104,33 @@
     珠宝首饰:
       en: jewelry photography, dark velvet background, dramatic spotlight, diamond sparkle, luxury feel, macro detail, elegant composition
       cn: 珠宝摄影，深色天鹅绒背景，戏剧性聚光灯，钻石闪耀，奢华质感，微距细节，优雅构图
+    服装展示:
+      en: fashion photography, mannequin or model, clean background, studio lighting, commercial quality, apparel showcase, professional styling, retail look
+      cn: 服装摄影，人体模型或模特，干净背景，工作室灯光，商业品质，服装展示，专业造型，零售look
+    家居用品:
+      en: home decor photography, styled interior setting, natural light, lifestyle product shot, warm atmosphere, cozy feel, interior design, modern home
+      cn: 家居用品摄影，风格化室内环境，自然光，生活方式产品拍摄，温暖氛围，舒适感，室内设计，现代家居
+    运动装备:
+      en: sports equipment photography, dynamic angle, dramatic lighting, action feel, high-energy atmosphere, fitness gear, athletic style, performance focus
+      cn: 运动装备摄影，动态角度，戏剧性灯光，动作感，高能量氛围，健身装备，运动风格，性能焦点
+    文具办公:
+      en: stationery photography, organized flat lay, soft natural light, minimalist aesthetic, clean composition, office supplies, professional look, productive vibe
+      cn: 文具摄影，组织化平铺，柔和自然光，极简美学，简洁构图，办公用品，专业look，高效氛围
+    玩具手办:
+      en: toy photography, collectible figures, dramatic lighting, detailed sculpting, vibrant colors, toy photography setup, playful atmosphere, hobby collection
+      cn: 玩具摄影，收藏人偶，戏剧性灯光，精细雕刻，鲜艳色彩，玩具摄影设置，俏皮氛围，爱好收藏
+    酒水饮品:
+      en: beverage photography, glassware with liquid, dramatic lighting, condensation droplets, premium feel, bar atmosphere, refreshing look, product showcase
+      cn: 酒水摄影，玻璃杯与液体，戏剧性灯光，凝结水珠，高级质感，酒吧氛围，清爽look，产品展示
+    数码配件:
+      en: digital accessories photography, tech gadgets, clean background, modern aesthetic, product lineup, tech lifestyle, gadget photography, digital essentials
+      cn: 数码配件摄影，科技小工具，干净背景，现代美学，产品阵容，科技生活方式，小工具摄影，数码必备品
+    手工皮具:
+      en: leather goods photography, premium leather texture, warm tones, craftsmanship detail, luxury accessories, artisan quality, classic design, timeless appeal
+      cn: 手工皮具摄影，高级皮革质感，暖色调，工艺细节，奢华配饰，工匠品质，经典设计，永恒 appeal
+    美妆彩妆:
+      en: cosmetics photography, vibrant color swatches, artistic arrangement, glamorous feel, beauty products, makeup palette, professional quality, luxury branding
+      cn: 美妆摄影，鲜艳色彩样品，艺术排列，迷人感觉，美妆产品，彩妆盘，专业品质，奢华品牌
   概念艺术:
     奇幻世界:
       en: fantasy concept art, epic landscape, magical atmosphere, volumetric lighting, detailed environment, matte painting style, cinematic composition, 8K
@@ -63,6 +147,30 @@
     废土末日:
       en: post-apocalyptic concept art, ruined city, overgrown vegetation, dramatic sky, desolate atmosphere, detailed decay, cinematic composition
       cn: 末日废土概念艺术，废墟城市，植被蔓延，戏剧性天空，荒凉氛围，精细衰败细节，电影构图
+    蒸汽朋克:
+      en: steampunk concept art, Victorian era machinery, brass gears, clockwork mechanisms, industrial aesthetic, retro-futuristic, detailed engineering, adventure atmosphere
+      cn: 蒸汽朋克概念艺术，维多利亚时代机械，黄铜齿轮，发条装置，工业美学，复古未来主义，精细工程，冒险氛围
+    赛博朋克都市:
+      en: cyberpunk cityscape, neon-lit streets, futuristic architecture, rain-soaked atmosphere, high-tech low-life, holographic ads, urban dystopia, blade runner style
+      cn: 赛博朋克都市，霓虹灯街道，未来主义建筑，雨水浸透的氛围，高科技低生活，全息广告，城市反乌托邦，银翼杀手风格
+    奇幻城堡:
+      en: fantasy castle, medieval architecture, magical towers, enchanted forest backdrop, dramatic lighting, fairy tale atmosphere, epic scale, RPG game art
+      cn: 奇幻城堡，中世纪建筑，魔法塔楼，魔法森林背景，戏剧性灯光，童话氛围，史诗规模，RPG游戏艺术
+    太空站:
+      en: space station interior, futuristic technology, zero gravity environment, airlocks, control panels, sci-fi atmosphere, space exploration, interstellar design
+      cn: 太空站内部，未来科技，零重力环境，气闸，控制面板，科幻氛围，太空探索，星际设计
+    深海世界:
+      en: underwater city, bioluminescent creatures, coral architecture, deep sea atmosphere, aquatic technology, oceanic civilization, mysterious depths, aquaman style
+      cn: 深海城市，生物发光生物，珊瑚建筑，深海氛围，水生技术，海洋文明，神秘深处，海王风格
+    机械装甲:
+      en: mech armor design, giant robot, futuristic warfare, detailed engineering, battle-damaged, military sci-fi, anime mecha style, powerful exoskeleton
+      cn: 机械装甲设计，巨型机器人，未来战争，精细工程，战损状态，军事科幻，动漫机甲风格，强力外骨骼
+    魔法学院:
+      en: magical academy, wizard school, enchanted library, floating candles, mystical atmosphere, fantasy education, magical creatures, Harry Potter inspired
+      cn: 魔法学院，巫师学校，魔法图书馆，漂浮蜡烛，神秘氛围，奇幻教育，神奇生物，哈利波特风格
+    末日方舟:
+      en: doomsday ark, massive survival vessel, post-apocalyptic refuge, dramatic clouds, hope amidst despair, epic scale, survival story, cinematic composition
+      cn: 末日方舟，巨型生存船，末日避难所，戏剧性云层，绝望中的希望，史诗规模，生存故事，电影构图
   动漫风格:
     日系动漫:
       en: Japanese anime style, cel shading, vibrant colors, detailed character design, expressive eyes, dynamic pose, clean line art, Studio Ghibli quality
@@ -79,6 +187,33 @@
     Q版萌系:
       en: chibi style, cute character design, big head small body, kawaii aesthetic, pastel colors, adorable expression, simple background
       cn: Q版风格，可爱角色设计，大头小身体，卡哇伊美学，粉彩色调，萌萌表情，简洁背景
+    美式漫画:
+      en: American comic style, bold outlines, dynamic poses, vibrant colors, superhero aesthetic, action-packed, comic book shading, Marvel/DC inspired
+      cn: 美式漫画风格，粗轮廓线，动态姿势，鲜艳色彩，超级英雄美学，动作密集，漫画书阴影，漫威/DC风格
+    法式漫画:
+      en: French comic style, BD aesthetic, clean lines, detailed backgrounds, European storytelling, Tintin style, ligne claire, adventure atmosphere
+      cn: 法式漫画风格，BD美学，干净线条，精细背景，欧洲叙事，丁丁风格，清晰线条，冒险氛围
+    条漫风格:
+      en: webtoon format, vertical scrolling, soft colors, romantic atmosphere, modern Korean webtoon style, emotional storytelling, digital art, web comic aesthetic
+      cn: 条漫格式，垂直滚动，柔和色彩，浪漫氛围，现代韩国网络漫画风格，情感叙事，数字艺术，网络漫画美学
+    像素复古:
+      en: pixel art retro, 8-bit aesthetic, limited color palette, nostalgic gaming, old school console style, retro gaming charm, vintage pixels, classic game art
+      cn: 像素复古，8位美学，有限色怀旧游戏，老式主机风格，复古游戏魅力，复古像素，经典游戏艺术
+    赛璐璐动画:
+      en: cel animation style, traditional anime look, hand-drawn feel, flat colors, clean lines, 90s anime aesthetic, Studio Ghibli inspired, classic animation
+      cn: 赛璐璐动画风格，传统动漫外观，手绘感，平涂色彩，干净线条，90年代动漫美学，吉卜力风格，经典动画
+    水彩动漫:
+      en: watercolor anime style, soft blended colors, dreamy atmosphere, artistic brushstrokes, emotional expression, painterly illustration, fine art anime, delicate rendering
+      cn: 水彩动漫风格，柔和混合色彩，梦幻氛围，艺术笔触，情感表达，绘画感插画，艺术动漫，细腻渲染
+    赛博动漫:
+      en: cyberpunk anime, neon-lit characters, futuristic outfits, high-tech aesthetic, digital art, glowing effects, cybernetic enhancements, sci-fi anime style
+      cn: 赛博动漫，霓虹灯角色，未来主义服装，高科技美学，数字艺术，发光效果，赛博增强，科幻动漫风格
+    黑暗奇幻:
+      en: dark fantasy anime, gothic atmosphere, detailed shadows, mysterious characters, horror elements, intense mood, dark color palette, supernatural themes
+      cn: 黑暗奇幻动漫，哥特氛围，精细阴影，神秘角色，恐怖元素，强烈情绪，暗色调，超自然主题
+    像素动态:
+      en: animated pixel art, sprite animation, retro game characters, pixel movement, nostalgic gaming, 16-bit animation, pixel art motion, classic arcade style
+      cn: 像素动态，精灵动画，复古游戏角色，像素移动，怀旧游戏，16位动画，像素艺术运动，经典街机风格
   写实风格:
     超写实人像:
       en: photorealistic portrait, hyper-detailed skin texture, natural lighting, 8K resolution, sharp focus, realistic eyes, professional photography, RAW quality
@@ -95,6 +230,33 @@
     黑白艺术:
       en: black and white photography, high contrast, dramatic shadows, timeless aesthetic, fine art print, emotional depth, minimalist composition
       cn: 黑白摄影，高对比度，戏剧性阴影，永恒美学，艺术微喷，情感深度，极简构图
+    时尚大片:
+      en: fashion editorial, high-end photography, model pose, designer clothing, luxury aesthetic, magazine cover quality, professional lighting, Vogue style
+      cn: 时尚大片，高端摄影，模特姿势，设计师服装，奢华美学，杂志封面品质，专业灯光，Vogue风格
+    美食特写:
+      en: food close-up, macro photography, appetizing details, steam rising, texture focus, culinary art, restaurant quality, food styling
+      cn: 美食特写，微距摄影，诱人细节，蒸汽上升，质感焦点，烹饪艺术，餐厅品质，食物造型
+    建筑摄影:
+      en: architectural photography, clean lines, geometric composition, modern buildings, structural beauty, urban landscape, professional perspective, architectural detail
+      cn: 建筑摄影，干净线条，几何构图，现代建筑，结构美，城市景观，专业视角，建筑细节
+    野生动物:
+      en: wildlife photography, animal in natural habitat, sharp focus, dynamic action, nature documentary, National Geographic style, animal behavior, wild beauty
+      cn: 野生动物摄影，自然栖息地动物，精准对焦，动态动作，自然纪录片，国家地理风格，动物行为，野性美
+    运动瞬间:
+      en: sports photography, peak action moment, motion freeze, athletic performance, dynamic composition, sports arena, professional sports coverage, action shot
+      cn: 运动摄影，巅峰动作瞬间，动作冻结，运动表现，动态构图，运动场馆，专业体育报道，动作 shot
+    婚纱摄影:
+      en: wedding photography, romantic couple, elegant dress, emotional moments, soft natural light, timeless beauty, love story, professional wedding album
+      cn: 婚纱摄影，浪漫情侣，优雅礼服，情感瞬间，柔和自然光，永恒美，爱情故事，专业婚纱相册
+    时尚人像:
+      en: fashion portrait, trendy styling, bold makeup, confident expression, modern aesthetic, fashion-forward, editorial quality, stylish look
+      cn: 时尚人像，潮流造型，大胆妆容，自信表情，现代美学，时尚前沿，编辑品质，时尚 look
+    商业广告:
+      en: commercial advertising, product placement, brand messaging, professional retouching, high-end quality, advertising campaign, persuasive imagery, marketing material
+      cn: 商业广告，产品植入，品牌信息，专业修图，高端品质，广告活动，说服性图像，营销材料
+    艺术人像:
+      en: fine art portrait, conceptual photography, artistic lighting, emotional depth, creative composition, gallery quality, artistic expression, museum-worthy
+      cn: 艺术人像，概念摄影，艺术灯光，情感深度，创意构图，画廊品质，艺术表达，博物馆级
   艺术风格:
     油画风格:
       en: oil painting style, thick impasto texture, rich colors, visible brushstrokes, classical composition, museum quality, Rembrandt lighting
@@ -111,6 +273,39 @@
     浮世绘风格:
       en: Japanese ukiyo-e style, woodblock print aesthetic, flat colors, outlined forms, traditional composition, Edo period inspiration
       cn: 日式浮世绘风格，木版画美学，平涂色彩，勾线造型，传统构图，江户时代灵感
+    印象派:
+      en: Impressionist style, visible brushstrokes, light and shadow play, outdoor scenes, Monet-inspired, soft edges, atmospheric perspective, en plein air
+      cn: 印象派风格，可见笔触，光影游戏，户外场景，莫奈风格，柔和边缘，大气透视，外光画法
+    立体主义:
+      en: Cubism style, geometric shapes, fragmented forms, multiple perspectives, Picasso-inspired, abstract composition, analytical cubism, modern art
+      cn: 立体主义风格，几何形状，碎片化形式，多视角，毕加索风格，抽象构图，分析立体主义，现代艺术
+    超现实主义:
+      en: Surrealism style, dreamlike imagery, impossible combinations, Dalí-inspired, symbolic elements, subconscious themes, psychological depth, fantasy reality
+      cn: 超现实主义风格，梦幻图像，不可能的组合，达利风格，象征元素，潜意识主题，心理深度，幻想现实
+    表现主义:
+      en: Expressionism style, emotional intensity, bold colors, distorted forms, angular shapes, raw emotion, psychological expression, inner reality
+      cn: 表现主义风格，情感强度，大胆色彩，扭曲形式，棱角形状，原始情感，心理表达，内在现实
+    巴洛克:
+      en: Baroque style, dramatic lighting, rich colors, grandeur, detailed ornamentation, dynamic composition, emotional intensity, classical elegance
+      cn: 巴洛克风格，戏剧性灯光，丰富色彩，宏伟，精细装饰，动态构图，情感强度，古典优雅
+    洛可可:
+      en: Rococo style, pastel colors, ornate details, playful themes, elegant curves, light-hearted atmosphere, decorative beauty, French aristocratic aesthetic
+      cn: 洛可可风格，粉彩色调，华丽细节，俏皮主题，优雅曲线，轻松氛围，装饰美，法国贵族美学
+    新艺术运动:
+      en: Art Nouveau style, organic forms, flowing lines, floral motifs, decorative patterns, natural inspiration, elegant curves, Alphonse Mucha inspired
+      cn: 新艺术运动风格，有机形态，流畅线条，花卉图案，装饰图案，自然灵感，优雅曲线，阿尔丰斯·穆夏风格
+    极简主义:
+      en: Minimalism style, clean lines, simple forms, limited color palette, geometric precision, negative space, modern aesthetic, less is more philosophy
+      cn: 极简主义风格，干净线条，简单形式，有限色盘，几何精度，负空间，现代美学，少即是多哲学
+    解构主义:
+      en: Deconstructivism style, fragmented architecture, unexpected angles, challenging forms, asymmetric design, conceptual approach, avant-garde aesthetic, architectural innovation
+      cn: 解构主义风格，碎片化建筑，意想不到的角度，挑战性形式，非对称设计，概念方法，前卫美学，建筑创新
+    原始艺术:
+      en: Primitive art style, tribal motifs, earth tones, symbolic patterns, raw textures, cultural heritage, ethnic inspiration, ancestral expression
+      cn: 原始艺术风格，部落图案，大地色调，象征图案，粗糙质感，文化遗产，民族灵感，祖先表达
+    未来主义:
+      en: Futurism style, dynamic movement, speed lines, technological themes, industrial aesthetic, energy and motion, modern life, machine age inspiration
+      cn: 未来主义风格，动态运动，速度线，科技主题，工业美学，能量与运动，现代生活，机器时代灵感
 👤 人物特征:
   身材体型:
     丰满型:

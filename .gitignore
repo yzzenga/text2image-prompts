@@ -3,3 +3,9 @@ prompt-data-self.yaml
 
 # Playwright 测试输出
 .playwright-mcp/
+
+# Agent 工作目录
+.omo/
+
+# 代码索引缓存
+.codegraph/
