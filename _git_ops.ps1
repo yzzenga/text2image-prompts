@@ -16,8 +16,14 @@ Write-Output ""
 Write-Output "=== Step 3: Git Commit ==="
 git commit -F _commit_msg.txt
 Write-Output ""
-Write-Output "=== Step 4: Git Push ==="
-git push
+Write-Output "=== Step 4: Git Push to origin ==="
+git push origin master
 Write-Output ""
-Write-Output "=== Step 4: Git Push All ==="
-git push --all
+Write-Output "=== Step 4: Git Push to gitcode ==="
+git push gitcode master
+Write-Output ""
+Write-Output "=== Step 5: Cleanup helper files ==="
+git rm --cached _commit_msg.txt _git_ops.ps1
+git commit -m "cleanup: remove helper scripts"
+git push origin master
+git push gitcode master
